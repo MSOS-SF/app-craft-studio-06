@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Copy, Users } from "lucide-react";
 import { useWebRTC } from "@/hooks/useWebRTC";
-import { QRCodeSVG } from "qrcode.react";
 
 const Lobby = () => {
   const location = useLocation();
@@ -15,8 +15,9 @@ const Lobby = () => {
   const { playerName, isHost } = location.state || {};
   
   const [roomCode, setRoomCode] = useState("");
-  const [connectionString, setConnectionString] = useState("");
-  const [answerString, setAnswerString] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [hostData, setHostData] = useState("");
+  const [playerData, setPlayerData] = useState("");
   
   const { 
     localId, 
@@ -35,34 +36,35 @@ const Lobby = () => {
     }
 
     if (isHost && !roomCode) {
-      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const code = Math.random().toString(36).substring(2, 6).toUpperCase();
       setRoomCode(code);
       createRoom(code);
     }
   }, [playerName, isHost, navigate]);
 
-  const handleJoinWithString = () => {
-    if (!connectionString.trim()) {
+  const handleJoin = () => {
+    if (!joinCode.trim() || !hostData.trim()) {
       toast({
-        title: "Connection String Required",
-        description: "Please paste the connection string from host",
+        title: "Missing Information",
+        description: "Enter room code and host's connection data",
         variant: "destructive",
       });
       return;
     }
-    joinRoom(connectionString);
+    joinRoom(hostData);
   };
 
-  const handleApplyAnswer = () => {
-    if (!answerString.trim()) {
+  const handleApplyPlayerConnection = () => {
+    if (!playerData.trim()) {
       toast({
-        title: "Answer String Required",
-        description: "Please paste the answer string from joining player",
+        title: "Missing Player Data",
+        description: "Paste player's connection data",
         variant: "destructive",
       });
       return;
     }
-    applyAnswer(answerString);
+    applyAnswer(playerData);
+    setPlayerData("");
   };
 
   const copyToClipboard = (text: string) => {
@@ -95,112 +97,155 @@ const Lobby = () => {
       <Card className="w-full max-w-2xl p-8 bg-white/95 backdrop-blur-sm">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-bold text-primary mb-2">
-            Offline Game Lobby
+            Local Hotspot Game
           </h2>
           <p className="text-sm text-muted-foreground">
-            {isHost ? "Show QR code to player" : "Scan host's QR code to join"}
+            {isHost ? "Share room code & connection data" : "Enter room details to join"}
           </p>
         </div>
 
         {isHost ? (
-          <>
-            <div className="mb-6">
-              {offerData ? (
-                <div className="space-y-4">
-                  <div className="bg-white p-6 rounded-lg border-2 border-primary flex justify-center">
-                    <QRCodeSVG value={offerData} size={200} />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground text-center">
-                      Or share connection string:
-                    </p>
-                    <div className="flex gap-2">
-                      <Input 
-                        value={offerData} 
-                        readOnly 
-                        className="text-xs font-mono"
-                      />
-                      <Button 
-                        size="sm" 
-                        onClick={() => copyToClipboard(offerData)}
-                        variant="secondary"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
+          <div className="mb-6 space-y-6">
+            <div className="p-6 bg-primary/5 rounded-lg border-2 border-primary/20 space-y-4">
+              <div>
+                <Label className="text-lg font-semibold mb-2 block">Room Code</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    value={roomCode} 
+                    readOnly 
+                    className="text-2xl font-bold text-center tracking-widest"
+                  />
+                  <Button 
+                    size="icon"
+                    onClick={() => copyToClipboard(roomCode)}
+                    variant="secondary"
+                  >
+                    <Copy className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+
+              {offerData && (
+                <div>
+                  <Label className="text-lg font-semibold mb-2 block">Connection Data</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Share this with your player
+                  </p>
+                  <div className="flex gap-2">
+                    <textarea 
+                      value={offerData} 
+                      readOnly 
+                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                    />
+                    <Button 
+                      size="icon"
+                      onClick={() => copyToClipboard(offerData)}
+                      variant="secondary"
+                    >
+                      <Copy className="h-5 w-5" />
+                    </Button>
                   </div>
                 </div>
-              ) : (
-                <p className="text-center text-muted-foreground">
-                  Generating QR code...
-                </p>
               )}
             </div>
             
             {offerData && !isConnected && (
-              <div className="mb-6 p-4 bg-muted rounded-lg space-y-3">
-                <p className="text-sm font-medium">Step 2: Apply answer</p>
+              <div className="p-4 bg-muted rounded-lg space-y-3">
+                <Label className="font-semibold">Waiting for Player...</Label>
                 <p className="text-xs text-muted-foreground">
-                  After player scans QR code, they'll give you an answer string. Paste it here:
+                  When player connects, paste their connection data here:
                 </p>
-                <div className="flex gap-2">
-                  <Input
-                    value={answerString}
-                    onChange={(e) => setAnswerString(e.target.value)}
-                    placeholder="Paste answer string"
-                    className="text-xs font-mono"
+                <div className="space-y-2">
+                  <textarea
+                    value={playerData}
+                    onChange={(e) => setPlayerData(e.target.value)}
+                    placeholder="Player's connection data..."
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                   />
-                  <Button onClick={handleApplyAnswer} disabled={!answerString}>
-                    Connect
+                  <Button 
+                    onClick={handleApplyPlayerConnection} 
+                    disabled={!playerData.trim()}
+                    className="w-full"
+                  >
+                    Complete Connection
                   </Button>
                 </div>
               </div>
             )}
             
             {isConnected && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-center text-green-700 font-medium">
+              <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                <p className="text-center text-green-700 font-semibold text-lg">
                   ✓ Player Connected!
                 </p>
               </div>
             )}
-          </>
+          </div>
         ) : (
-          <>
-            <div className="mb-6 space-y-4">
-              <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm font-medium mb-3">Step 1: Connect to host</p>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Scan the host's QR code or paste connection string below:
-                </p>
+          <div className="mb-6 space-y-4">
+            <div className="p-6 bg-muted rounded-lg space-y-4">
+              <div>
+                <Label className="font-semibold mb-2 block">Room Code</Label>
                 <Input
-                  value={connectionString}
-                  onChange={(e) => setConnectionString(e.target.value)}
-                  placeholder="Paste connection string"
-                  className="text-xs font-mono mb-2"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  placeholder="Enter room code (e.g., AB12)"
+                  className="text-xl font-bold text-center tracking-widest"
+                  maxLength={4}
                 />
-                <Button 
-                  className="w-full" 
-                  onClick={handleJoinWithString}
-                  disabled={!connectionString}
-                >
-                  Connect to Host
-                </Button>
               </div>
-              
-              {isConnected && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-center text-green-700 font-medium mb-2">
-                    ✓ Connected to host!
-                  </p>
-                  <p className="text-xs text-center text-muted-foreground">
-                    Waiting for host to start game...
-                  </p>
-                </div>
-              )}
+
+              <div>
+                <Label className="font-semibold mb-2 block">Host's Connection Data</Label>
+                <textarea
+                  value={hostData}
+                  onChange={(e) => setHostData(e.target.value)}
+                  placeholder="Paste host's connection data here..."
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                />
+              </div>
+
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={handleJoin}
+                disabled={!joinCode.trim() || !hostData.trim()}
+              >
+                Join Room
+              </Button>
             </div>
-          </>
+            
+            {offerData && (
+              <div className="p-4 bg-primary/5 border-2 border-primary/20 rounded-lg space-y-2">
+                <Label className="font-semibold block">Your Connection Data</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Copy this and send it back to the host:
+                </p>
+                <div className="flex gap-2">
+                  <textarea 
+                    value={offerData} 
+                    readOnly 
+                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                  />
+                  <Button 
+                    size="icon"
+                    onClick={() => copyToClipboard(offerData)}
+                    variant="secondary"
+                  >
+                    <Copy className="h-5 w-5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {isConnected && (
+              <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                <p className="text-center text-green-700 font-semibold">
+                  ✓ Connected! Waiting for game to start...
+                </p>
+              </div>
+            )}
+          </div>
         )}
 
         <div className="mb-6">
