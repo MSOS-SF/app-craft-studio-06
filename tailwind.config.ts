@@ -47,6 +47,17 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        uno: {
+          red: "hsl(var(--uno-red))",
+          yellow: "hsl(var(--uno-yellow))",
+          green: "hsl(var(--uno-green))",
+          blue: "hsl(var(--uno-blue))",
+          wild: "hsl(var(--uno-wild))",
+        },
+        game: {
+          'bg-start': "hsl(var(--game-bg-start))",
+          'bg-end': "hsl(var(--game-bg-end))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
