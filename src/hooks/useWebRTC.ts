@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import pako from "pako";
 
 interface Peer {
   id: string;
@@ -62,14 +63,17 @@ export const useWebRTC = (playerName: string) => {
       }
     });
     
-    // Generate connection string (offer + ICE candidates)
+    // Generate connection string with compressed data and short keys
     const connectionData = {
-      offer: peerConnectionRef.current.localDescription,
-      hostId: localId,
-      hostName: playerName,
+      o: peerConnectionRef.current.localDescription,
+      i: localId,
+      n: playerName,
     };
     
-    const connectionString = btoa(JSON.stringify(connectionData));
+    // Compress and encode
+    const jsonStr = JSON.stringify(connectionData);
+    const compressed = pako.deflate(jsonStr);
+    const connectionString = btoa(String.fromCharCode(...compressed));
     setOfferData(connectionString);
     
     toast({
@@ -87,8 +91,10 @@ export const useWebRTC = (playerName: string) => {
     try {
       console.log(`Joining room with connection string`);
       
-      // Decode connection data
-      const connectionData = JSON.parse(atob(connectionString));
+      // Decompress and decode connection data
+      const compressed = Uint8Array.from(atob(connectionString), c => c.charCodeAt(0));
+      const decompressed = pako.inflate(compressed, { to: 'string' });
+      const connectionData = JSON.parse(decompressed);
       
       // Create peer connection
       peerConnectionRef.current = new RTCPeerConnection(configuration);
@@ -102,7 +108,7 @@ export const useWebRTC = (playerName: string) => {
           setIsConnected(true);
           toast({
             title: "Connected",
-            description: `Joined ${connectionData.hostName}'s game`,
+            description: `Joined ${connectionData.n}'s game`,
           });
         };
         
@@ -112,7 +118,7 @@ export const useWebRTC = (playerName: string) => {
       };
       
       // Set remote description (host's offer)
-      await peerConnectionRef.current.setRemoteDescription(connectionData.offer);
+      await peerConnectionRef.current.setRemoteDescription(connectionData.o);
       
       // Create answer
       const answer = await peerConnectionRef.current.createAnswer();
@@ -131,17 +137,19 @@ export const useWebRTC = (playerName: string) => {
         }
       });
       
-      // In a real app, you'd send this answer back to the host
-      // For now, we'll store it and the host would need to manually apply it
+      // Create compressed answer for host
       const answerData = {
-        answer: peerConnectionRef.current.localDescription,
-        peerId: localId,
-        peerName: playerName,
+        a: peerConnectionRef.current.localDescription,
+        i: localId,
+        n: playerName,
       };
       
-      console.log("Answer created:", answerData);
-      // The answer needs to be sent to host somehow - this is the limitation
-      // In a local hotspot, you could use a simple HTTP server on the host device
+      const answerJson = JSON.stringify(answerData);
+      const answerCompressed = pako.deflate(answerJson);
+      const answerString = btoa(String.fromCharCode(...answerCompressed));
+      setOfferData(answerString);
+      
+      console.log("Answer created");
       
     } catch (error) {
       console.error("Error joining room:", error);
@@ -167,9 +175,11 @@ export const useWebRTC = (playerName: string) => {
 
   const applyAnswer = async (answerString: string) => {
     try {
-      const answerData = JSON.parse(atob(answerString));
+      const compressed = Uint8Array.from(atob(answerString), c => c.charCodeAt(0));
+      const decompressed = pako.inflate(compressed, { to: 'string' });
+      const answerData = JSON.parse(decompressed);
       if (peerConnectionRef.current) {
-        await peerConnectionRef.current.setRemoteDescription(answerData.answer);
+        await peerConnectionRef.current.setRemoteDescription(answerData.a);
         console.log("Answer applied successfully");
       }
     } catch (error) {
