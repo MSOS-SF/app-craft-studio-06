@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { UnoCard } from "@/components/game/UnoCard";
 import { PlayerDisplay } from "@/components/game/PlayerDisplay";
 import { ColorPicker } from "@/components/game/ColorPicker";
-import { EmojiSelector } from "@/components/game/EmojiSelector";
 import { WinnerModal } from "@/components/game/WinnerModal";
 import { useGameState } from "@/hooks/useGameState";
 import { ArrowLeft } from "lucide-react";
@@ -14,13 +13,12 @@ import type { CardColor } from "@/hooks/useGameState";
 const Game = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { playerName, isSinglePlayer } = location.state || {};
+  const { playerName, playerEmoji = "😀", isSinglePlayer } = location.state || {};
   const [showUnoButton, setShowUnoButton] = useState(false);
   const [unoAnnouncement, setUnoAnnouncement] = useState<string | null>(null);
   const [drawingAnimation, setDrawingAnimation] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [pendingWildCard, setPendingWildCard] = useState<number | null>(null);
-  const [playerEmoji, setPlayerEmoji] = useState("😀");
   const [turnTimer, setTurnTimer] = useState(10);
   const [playingCardIndex, setPlayingCardIndex] = useState<number | null>(null);
 
@@ -316,12 +314,9 @@ const Game = () => {
 
       {/* Player's hand */}
       <div className="fixed bottom-0 left-0 right-0 bg-secondary/90 backdrop-blur-sm rounded-t-3xl p-4 md:p-6 shadow-2xl">
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <div className="text-white font-bold text-xl flex items-center gap-2">
-            <span className="text-3xl">{playerEmoji}</span>
-            <span>{playerName}</span>
-          </div>
-          <EmojiSelector selectedEmoji={playerEmoji} onSelectEmoji={setPlayerEmoji} />
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <span className="text-3xl">{playerEmoji}</span>
+          <span className="text-white font-bold text-xl">{playerName}</span>
         </div>
         <div className="flex gap-2 md:gap-3 items-end max-w-full overflow-x-auto pb-2 justify-center">
           {gameState.players[0]?.hand.map((card, index) => (
