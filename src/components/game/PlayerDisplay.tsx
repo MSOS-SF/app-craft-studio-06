@@ -38,8 +38,8 @@ export const PlayerDisplay = ({ name, cardCount, position }: PlayerDisplayProps)
             <UnoCard color="wild" value="back" size="sm" />
           </div>
         ))}
-        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs shadow-lg z-10">
-          {cardCount}
+        <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-accent rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg shadow-xl border-2 border-white z-20">
+          <span className="text-white">{cardCount}</span>
         </div>
       </div>
     </div>
