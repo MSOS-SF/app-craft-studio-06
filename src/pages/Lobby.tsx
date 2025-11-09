@@ -22,8 +22,8 @@ const Lobby = () => {
   const [playerData, setPlayerData] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showHostQRScanner, setShowHostQRScanner] = useState(false);
-  const [qrSize, setQrSize] = useState(300);
-  const [joinerQrSize, setJoinerQrSize] = useState(220);
+  const [qrSize, setQrSize] = useState(180);
+  const [joinerQrSize, setJoinerQrSize] = useState(180);
   
   const { 
     localId, 
@@ -175,13 +175,13 @@ const Lobby = () => {
                       />
                     </div>
                     <Button
-                      onClick={() => setQrSize(qrSize === 300 ? 450 : 300)}
+                      onClick={() => setQrSize(qrSize === 180 ? 350 : 180)}
                       variant="outline"
                       size="sm"
                       className="gap-2"
                     >
                       <QrCode className="h-4 w-4" />
-                      {qrSize === 300 ? "Enlarge QR" : "Shrink QR"}
+                      {qrSize === 180 ? "Enlarge QR" : "Shrink QR"}
                     </Button>
                     <div className="w-full">
                       <Label className="text-sm mb-2 block">Or copy text:</Label>
@@ -343,13 +343,13 @@ const Lobby = () => {
                     />
                   </div>
                   <Button
-                    onClick={() => setJoinerQrSize(joinerQrSize === 220 ? 350 : 220)}
+                    onClick={() => setJoinerQrSize(joinerQrSize === 180 ? 350 : 180)}
                     variant="outline"
                     size="sm"
                     className="gap-2"
                   >
                     <QrCode className="h-4 w-4" />
-                    {joinerQrSize === 220 ? "Enlarge QR" : "Shrink QR"}
+                    {joinerQrSize === 180 ? "Enlarge QR" : "Shrink QR"}
                   </Button>
                   <div className="w-full">
                     <Label className="text-sm mb-2 block">Or copy text:</Label>
