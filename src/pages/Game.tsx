@@ -51,11 +51,17 @@ const Game = () => {
     const interval = setInterval(() => {
       setTurnTimer((prev) => {
         if (prev <= 1) {
-          // Time's up - auto skip turn
+          // Time's up - penalty: draw card and skip turn
           if (gameState.currentPlayerIndex === 0) {
             handleDrawCard();
+          } else {
+            // For AI players, just skip their turn
+            setGameState(prevState => ({
+              ...prevState,
+              currentPlayerIndex: (prevState.currentPlayerIndex + prevState.direction + prevState.players.length) % prevState.players.length,
+            }));
           }
-          return 10;
+          return 0; // Stay at 0 until turn changes
         }
         return prev - 1;
       });
