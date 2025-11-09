@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { Wifi, Bluetooth } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Wifi, Bluetooth, ArrowLeft } from "lucide-react";
 
 const Menu = () => {
   const [playerName, setPlayerName] = useState("");
@@ -49,6 +49,18 @@ const Menu = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end flex items-center justify-center p-4">
+      {showHostOptions && (
+        <Button
+          onClick={() => setShowHostOptions(false)}
+          variant="outline"
+          size="sm"
+          className="absolute top-4 left-4 bg-white/90 hover:bg-white gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      )}
+
       <div className="text-center space-y-8 w-full max-w-md">
         <Input
           type="text"
@@ -116,14 +128,6 @@ const Menu = () => {
                 </div>
               </Button>
 
-              <Button
-                onClick={() => setShowHostOptions(false)}
-                variant="outline"
-                size="lg"
-                className="w-72 mt-4 bg-white/90 hover:bg-white"
-              >
-                Back
-              </Button>
             </>
           )}
         </div>
