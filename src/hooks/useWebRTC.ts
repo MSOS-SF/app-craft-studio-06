@@ -55,12 +55,37 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
   const createRoom = async (roomCode: string) => {
     console.log(`Creating room as host: ${roomCode}`);
     
+    // Create a temporary peer connection to generate offer
+    const tempConnection = new RTCPeerConnection(configuration);
+    const tempChannel = tempConnection.createDataChannel("game");
+    
+    // Create offer
+    const offer = await tempConnection.createOffer();
+    await tempConnection.setLocalDescription(offer);
+    
+    // Wait for ICE gathering
+    await new Promise<void>((resolve) => {
+      if (tempConnection.iceGatheringState === 'complete') {
+        resolve();
+      } else {
+        tempConnection.onicegatheringstatechange = () => {
+          if (tempConnection.iceGatheringState === 'complete') {
+            resolve();
+          }
+        };
+      }
+    });
+    
     // Generate shareable offer that multiple players can use
     const connectionData = {
       r: roomCode,
       i: localId,
       n: playerName,
+      o: tempConnection.localDescription,
     };
+    
+    // Clean up temp connection (we'll create new ones for each joiner)
+    tempConnection.close();
     
     // Compress and encode
     const jsonStr = JSON.stringify(connectionData);
