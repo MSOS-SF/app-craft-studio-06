@@ -23,6 +23,7 @@ const Lobby = () => {
   const [qrSize, setQrSize] = useState(180);
   const [joinerQrSize, setJoinerQrSize] = useState(180);
   const [gameStarted, setGameStarted] = useState(false);
+  const [cameraPermission, setCameraPermission] = useState<'prompt' | 'granted' | 'denied'>('prompt');
   
   const handleGameStateReceived = useCallback((message: any) => {
     console.log("Message received in lobby:", message);
@@ -107,6 +108,44 @@ const Lobby = () => {
       title: "Copied!",
       description: "Copied to clipboard",
     });
+  };
+
+  const requestCameraPermission = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach(track => track.stop());
+      setCameraPermission('granted');
+      return true;
+    } catch (error) {
+      console.error('Camera permission error:', error);
+      setCameraPermission('denied');
+      toast({
+        title: "Camera Access Denied",
+        description: "Please allow camera access to scan QR codes",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const handleShowScanner = async (isHost: boolean) => {
+    if (cameraPermission === 'denied') {
+      toast({
+        title: "Camera Access Required",
+        description: "Please enable camera permissions in your browser settings",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const granted = await requestCameraPermission();
+    if (granted) {
+      if (isHost) {
+        setShowHostQRScanner(true);
+      } else {
+        setShowQRScanner(true);
+      }
+    }
   };
 
   const handleQRScan = (result: string) => {
@@ -227,7 +266,7 @@ const Lobby = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowHostQRScanner(!showHostQRScanner)}
+                    onClick={() => showHostQRScanner ? setShowHostQRScanner(false) : handleShowScanner(true)}
                     className="gap-2"
                   >
                     <Camera className="h-4 w-4" />
@@ -294,7 +333,7 @@ const Lobby = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowQRScanner(!showQRScanner)}
+                    onClick={() => showQRScanner ? setShowQRScanner(false) : handleShowScanner(false)}
                     className="gap-2"
                   >
                     <Camera className="h-4 w-4" />
