@@ -164,12 +164,12 @@ const Lobby = () => {
                     Player can scan this with their camera
                   </p>
                   <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
-                    <div className="bg-white p-4 rounded-xl shadow-lg">
+                    <div className="bg-white p-3 rounded-xl shadow-lg">
                       <QRCodeCanvas 
                         value={offerData} 
-                        size={220}
-                        level="M"
-                        includeMargin={true}
+                        size={160}
+                        level="L"
+                        includeMargin={false}
                       />
                     </div>
                     <div className="w-full">
@@ -319,12 +319,12 @@ const Lobby = () => {
                   Host can scan this QR code or copy the text:
                 </p>
                 <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
-                  <div className="bg-white p-4 rounded-xl shadow-lg">
+                  <div className="bg-white p-3 rounded-xl shadow-lg">
                     <QRCodeCanvas 
                       value={offerData} 
-                      size={220}
-                      level="M"
-                      includeMargin={true}
+                      size={160}
+                      level="L"
+                      includeMargin={false}
                     />
                   </div>
                   <div className="w-full">
