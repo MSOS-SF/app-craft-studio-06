@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Wifi, Bluetooth, ArrowLeft } from "lucide-react";
+import { EmojiSelector } from "@/components/game/EmojiSelector";
 
 const Menu = () => {
   const [playerName, setPlayerName] = useState("");
+  const [selectedEmoji, setSelectedEmoji] = useState("😀");
   const [showHostOptions, setShowHostOptions] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -20,7 +22,7 @@ const Menu = () => {
       });
       return;
     }
-    navigate("/game", { state: { playerName, isSinglePlayer: true } });
+    navigate("/game", { state: { playerName, playerEmoji: selectedEmoji, isSinglePlayer: true } });
   };
 
   const handleHost = () => {
@@ -36,7 +38,7 @@ const Menu = () => {
   };
 
   const handleHostWithWiFi = () => {
-    navigate("/lobby", { state: { playerName, isHost: true, connectionType: "wifi" } });
+    navigate("/lobby", { state: { playerName, playerEmoji: selectedEmoji, isHost: true, connectionType: "wifi" } });
   };
 
   const handleHostWithBluetooth = () => {
@@ -56,7 +58,7 @@ const Menu = () => {
       });
       return;
     }
-    navigate("/lobby", { state: { playerName, isHost: false } });
+    navigate("/lobby", { state: { playerName, playerEmoji: selectedEmoji, isHost: false } });
   };
 
   return (
@@ -74,14 +76,17 @@ const Menu = () => {
       )}
 
       <div className="text-center space-y-8 w-full max-w-md">
-        <Input
-          type="text"
-          placeholder="Enter your name"
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-          className="w-full bg-white/90 backdrop-blur-sm border-2 border-white shadow-lg text-base"
-          maxLength={20}
-        />
+        <div className="flex gap-2 items-center">
+          <Input
+            type="text"
+            placeholder="Enter your name"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            className="flex-1 bg-white/90 backdrop-blur-sm border-2 border-white shadow-lg text-base"
+            maxLength={20}
+          />
+          <EmojiSelector selectedEmoji={selectedEmoji} onSelectEmoji={setSelectedEmoji} />
+        </div>
         <div className="mt-4">
           <h1 className="text-6xl md:text-8xl font-bold text-white mb-4 drop-shadow-2xl">
             UNO
