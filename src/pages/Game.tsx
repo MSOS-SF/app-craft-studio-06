@@ -7,6 +7,7 @@ import { ColorPicker } from "@/components/game/ColorPicker";
 import { WinnerModal } from "@/components/game/WinnerModal";
 import { useGameState } from "@/hooks/useGameState";
 import { useWebRTC } from "@/hooks/useWebRTC";
+import { useAudio } from "@/hooks/useAudio";
 import { ArrowLeft } from "lucide-react";
 import { makeOfflineAIDecision } from "@/lib/offlineAI";
 import type { CardColor } from "@/hooks/useGameState";
@@ -48,10 +49,25 @@ const Game = () => {
     handleGameStateReceived
   );
 
+  const { playCardDraw, playCardPlay, playWin, playBackgroundMusic } = useAudio();
+
   if (!playerName) {
     navigate("/");
     return null;
   }
+
+  // Start background music on mount
+  useEffect(() => {
+    const cleanup = playBackgroundMusic();
+    return cleanup;
+  }, [playBackgroundMusic]);
+
+  // Play win sound when winner is detected
+  useEffect(() => {
+    if (gameState.winner) {
+      playWin();
+    }
+  }, [gameState.winner, playWin]);
 
   // Turn timer
   useEffect(() => {
@@ -99,6 +115,7 @@ const Game = () => {
   const handleDrawCard = () => {
     if (gameState.currentPlayerIndex !== 0) return;
     
+    playCardDraw();
     setDrawingAnimation(true);
     const newState = drawCard();
     setTimeout(() => setDrawingAnimation(false), 500);
@@ -121,6 +138,7 @@ const Game = () => {
       return;
     }
     
+    playCardPlay();
     // Play animation
     setPlayingCardIndex(cardIndex);
     setTimeout(() => {
@@ -137,6 +155,7 @@ const Game = () => {
   const handleColorSelect = (color: CardColor) => {
     if (pendingWildCard === null) return;
     
+    playCardPlay();
     const card = gameState.players[0].hand[pendingWildCard];
     const coloredCard = { ...card, color };
     

@@ -3,8 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Wifi, Bluetooth, ArrowLeft } from "lucide-react";
+import { Wifi, Bluetooth, ArrowLeft, Settings } from "lucide-react";
 import { EmojiSelector } from "@/components/game/EmojiSelector";
+import { AudioSettings } from "@/components/AudioSettings";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Menu = () => {
   const [playerName, setPlayerName] = useState("");
@@ -70,6 +78,24 @@ const Menu = () => {
           Back
         </Button>
       )}
+
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute top-4 right-4 bg-white/90 hover:bg-white h-10 w-10"
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+          </DialogHeader>
+          <AudioSettings />
+        </DialogContent>
+      </Dialog>
 
       <div className="text-center space-y-8 w-full max-w-md">
         <div className="flex gap-2 items-center">
