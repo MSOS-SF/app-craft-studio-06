@@ -34,14 +34,12 @@ const Game = () => {
 
   const handleGameStateReceived = useCallback((message: any) => {
     console.log("Received message in game:", message);
-    
-    // Handle wrapped messages with type field
-    if (message.type === "game_state") {
-      setGameState(message.data);
-    } else {
-      // Handle direct game state (backwards compatibility)
-      setGameState(message);
+    // Unwrap nested game_state messages if any
+    let payload = message;
+    while (payload && payload.type === "game_state" && payload.data) {
+      payload = payload.data;
     }
+    setGameState(payload);
   }, [setGameState]);
 
   const rtc = useWebRTCContext();
@@ -62,8 +60,7 @@ const Game = () => {
   useEffect(() => {
     const cleanup = playBackgroundMusic();
     if (isMultiplayer && isHost) {
-      // Send authoritative initial state so all devices sync before first move
-      setTimeout(() => broadcastGameState({ type: "game_state", data: gameState }), 200);
+      setTimeout(() => broadcastGameState(gameState), 200);
     }
     return cleanup;
   }, [playBackgroundMusic]);
@@ -125,11 +122,10 @@ const Game = () => {
     setDrawingAnimation(true);
     const newState = drawCard();
     setTimeout(() => setDrawingAnimation(false), 500);
-    
-      // Broadcast state in multiplayer
-      if (isMultiplayer && isHost && newState) {
-        setTimeout(() => broadcastGameState({ type: "game_state", data: newState }), 100);
-      }
+    // Broadcast state in multiplayer
+    if (isMultiplayer && isHost && newState) {
+      setTimeout(() => broadcastGameState(newState), 100);
+    }
   };
 
   const handlePlayCard = (cardIndex: number) => {
@@ -153,7 +149,7 @@ const Game = () => {
       
       // Broadcast state in multiplayer
       if (isMultiplayer && isHost && newState) {
-        setTimeout(() => broadcastGameState({ type: "game_state", data: newState }), 100);
+        setTimeout(() => broadcastGameState(newState), 100);
       }
     }, 300);
   };
@@ -203,7 +199,7 @@ const Game = () => {
       
       // Broadcast state in multiplayer
       if (isMultiplayer && isHost) {
-        setTimeout(() => broadcastGameState({ type: "game_state", data: newState }), 100);
+        setTimeout(() => broadcastGameState(newState), 100);
       }
       
       return newState;
