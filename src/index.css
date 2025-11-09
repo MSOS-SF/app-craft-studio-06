@@ -36,8 +36,8 @@ All colors MUST be HSL.
     --uno-wild: 0 0% 10%;
     
     /* Game Colors */
-    --game-bg-start: 262 83% 58%;
-    --game-bg-end: 262 47% 45%;
+    --game-bg-start: 0 85% 60%;
+    --game-bg-end: 0 70% 45%;
     
     --radius: 0.5rem;
 
@@ -80,8 +80,8 @@ All colors MUST be HSL.
     --uno-wild: 0 0% 10%;
     
     /* Game Colors */
-    --game-bg-start: 262 83% 58%;
-    --game-bg-end: 262 47% 35%;
+    --game-bg-start: 0 85% 60%;
+    --game-bg-end: 0 70% 35%;
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
