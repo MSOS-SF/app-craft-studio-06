@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
-import { Copy, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Copy, Users, QrCode, Camera } from "lucide-react";
 import { useWebRTC } from "@/hooks/useWebRTC";
+import { QRCodeCanvas } from "qrcode.react";
+import { Scanner } from "@yudiel/react-qr-scanner";
 
 const Lobby = () => {
   const location = useLocation();
@@ -18,6 +20,7 @@ const Lobby = () => {
   const [joinCode, setJoinCode] = useState("");
   const [hostData, setHostData] = useState("");
   const [playerData, setPlayerData] = useState("");
+  const [showQRScanner, setShowQRScanner] = useState(false);
   
   const { 
     localId, 
@@ -75,6 +78,15 @@ const Lobby = () => {
     });
   };
 
+  const handleQRScan = (result: string) => {
+    setHostData(result);
+    setShowQRScanner(false);
+    toast({
+      title: "QR Code Scanned!",
+      description: "Connection data captured",
+    });
+  };
+
   const handleStartGame = () => {
     if (!isConnected) {
       toast({
@@ -127,23 +139,34 @@ const Lobby = () => {
 
               {offerData && (
                 <div>
-                  <Label className="text-lg font-semibold mb-2 block">Connection Data</Label>
+                  <Label className="text-lg font-semibold mb-2 block">Connection QR Code</Label>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Share this with your player
+                    Player can scan this with their camera
                   </p>
-                  <div className="flex gap-2">
-                    <textarea 
+                  <div className="flex flex-col items-center gap-4 p-4 bg-white rounded-lg">
+                    <QRCodeCanvas 
                       value={offerData} 
-                      readOnly 
-                      className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                      size={200}
+                      level="L"
+                      className="border-4 border-primary/10 rounded-lg"
                     />
-                    <Button 
-                      size="icon"
-                      onClick={() => copyToClipboard(offerData)}
-                      variant="secondary"
-                    >
-                      <Copy className="h-5 w-5" />
-                    </Button>
+                    <div className="w-full">
+                      <Label className="text-sm mb-2 block">Or copy manually:</Label>
+                      <div className="flex gap-2">
+                        <textarea 
+                          value={offerData} 
+                          readOnly 
+                          className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                        />
+                        <Button 
+                          size="icon"
+                          onClick={() => copyToClipboard(offerData)}
+                          variant="secondary"
+                        >
+                          <Copy className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -196,11 +219,37 @@ const Lobby = () => {
               </div>
 
               <div>
-                <Label className="font-semibold mb-2 block">Host's Connection Data</Label>
+                <Label className="font-semibold mb-2 flex items-center justify-between">
+                  Host's Connection Data
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowQRScanner(!showQRScanner)}
+                    className="gap-2"
+                  >
+                    <Camera className="h-4 w-4" />
+                    {showQRScanner ? "Hide Camera" : "Scan QR Code"}
+                  </Button>
+                </Label>
+
+                {showQRScanner && (
+                  <div className="mb-4 rounded-lg overflow-hidden border-2 border-primary">
+                    <Scanner
+                      onScan={(result) => {
+                        if (result && result[0]) {
+                          handleQRScan(result[0].rawValue);
+                        }
+                      }}
+                      onError={(error) => console.error(error)}
+                      styles={{ container: { width: "100%" } }}
+                    />
+                  </div>
+                )}
+
                 <textarea
                   value={hostData}
                   onChange={(e) => setHostData(e.target.value)}
-                  placeholder="Paste host's connection data here..."
+                  placeholder="Paste host's connection data or scan QR code..."
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
                 />
               </div>
