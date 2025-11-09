@@ -15,17 +15,17 @@ export const EmojiSelector = ({ selectedEmoji, onSelectEmoji }: EmojiSelectorPro
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="text-2xl p-2 h-auto">
+        <Button variant="outline" className="text-3xl p-3 h-12 w-12 border-2 border-white">
           {selectedEmoji}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64">
-        <div className="grid grid-cols-4 gap-2">
+      <PopoverContent className="w-72 p-4">
+        <div className="grid grid-cols-4 gap-3">
           {emojis.map((emoji) => (
             <Button
               key={emoji}
               variant="ghost"
-              className="text-3xl h-14 hover:scale-110 transition-transform"
+              className="text-4xl h-16 hover:scale-110 transition-transform"
               onClick={() => {
                 onSelectEmoji(emoji);
                 setOpen(false);

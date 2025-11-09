@@ -4,9 +4,10 @@ interface PlayerDisplayProps {
   name: string;
   cardCount: number;
   position: "top" | "left" | "right";
+  emoji?: string;
 }
 
-export const PlayerDisplay = ({ name, cardCount, position }: PlayerDisplayProps) => {
+export const PlayerDisplay = ({ name, cardCount, position, emoji = "😀" }: PlayerDisplayProps) => {
   const isVertical = position === "left" || position === "right";
 
   return (
@@ -14,8 +15,8 @@ export const PlayerDisplay = ({ name, cardCount, position }: PlayerDisplayProps)
       {/* Player avatar and info */}
       <div className="flex flex-col items-center gap-2">
         <div className="w-16 h-16 rounded-full bg-accent border-4 border-white shadow-lg flex items-center justify-center">
-          <span className="text-2xl font-bold text-white">
-            {name.charAt(0).toUpperCase()}
+          <span className="text-3xl">
+            {emoji}
           </span>
         </div>
         <div className="text-foreground font-bold text-sm text-center">

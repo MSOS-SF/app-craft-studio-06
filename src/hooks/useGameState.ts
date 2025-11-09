@@ -11,6 +11,7 @@ export interface Card {
 export interface Player {
   name: string;
   hand: Card[];
+  emoji?: string;
 }
 
 export interface GameState {
@@ -63,21 +64,21 @@ const shuffleDeck = (deck: Card[]): Card[] => {
   return shuffled;
 };
 
-export const useGameState = (playerName: string, isSinglePlayer: boolean = false) => {
+export const useGameState = (playerName: string, isSinglePlayer: boolean = false, playerEmoji: string = "😀") => {
   const [gameState, setGameState] = useState<GameState>(() => {
     const deck = createDeck();
     const players: Player[] = isSinglePlayer
       ? [
-          { name: playerName, hand: deck.splice(0, 7) },
-          { name: "AI Player 1", hand: deck.splice(0, 7) },
-          { name: "AI Player 2", hand: deck.splice(0, 7) },
-          { name: "AI Player 3", hand: deck.splice(0, 7) },
+          { name: playerName, hand: deck.splice(0, 7), emoji: playerEmoji },
+          { name: "AI Player 1", hand: deck.splice(0, 7), emoji: "🤖" },
+          { name: "AI Player 2", hand: deck.splice(0, 7), emoji: "👾" },
+          { name: "AI Player 3", hand: deck.splice(0, 7), emoji: "🎮" },
         ]
       : [
-          { name: playerName, hand: deck.splice(0, 7) },
-          { name: "Player 2", hand: deck.splice(0, 7) },
-          { name: "Player 3", hand: deck.splice(0, 7) },
-          { name: "Player 4", hand: deck.splice(0, 7) },
+          { name: playerName, hand: deck.splice(0, 7), emoji: playerEmoji },
+          { name: "Player 2", hand: deck.splice(0, 7), emoji: "😎" },
+          { name: "Player 3", hand: deck.splice(0, 7), emoji: "🔥" },
+          { name: "Player 4", hand: deck.splice(0, 7), emoji: "⚡" },
         ];
 
     const startCard = deck.find(card => typeof card.value === "number") || deck[0];

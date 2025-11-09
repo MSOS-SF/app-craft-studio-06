@@ -30,7 +30,7 @@ const Game = () => {
     drawCard, 
     canPlayCard,
     setGameState 
-  } = useGameState(playerName, isSinglePlayer);
+  } = useGameState(playerName, isSinglePlayer, playerEmoji);
 
   const handleGameStateReceived = useCallback((message: any) => {
     console.log("Received message in game:", message);
@@ -322,6 +322,7 @@ const Game = () => {
           name={gameState.players[1]?.name || "Player 2"}
           cardCount={gameState.players[1]?.hand.length || 0}
           position="top"
+          emoji={gameState.players[1]?.emoji}
         />
       </div>
 
@@ -331,6 +332,7 @@ const Game = () => {
           name={gameState.players[2]?.name || "Player 3"}
           cardCount={gameState.players[2]?.hand.length || 0}
           position="left"
+          emoji={gameState.players[2]?.emoji}
         />
       </div>
 
@@ -340,6 +342,7 @@ const Game = () => {
           name={gameState.players[3]?.name || "Player 4"}
           cardCount={gameState.players[3]?.hand.length || 0}
           position="right"
+          emoji={gameState.players[3]?.emoji}
         />
       </div>
 

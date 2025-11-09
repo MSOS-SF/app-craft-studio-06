@@ -9,33 +9,34 @@ export const AudioSettings = () => {
   const { settings, toggleSfx, toggleMusic, setSfxVolume, setMusicVolume } = useAudio();
 
   return (
-    <Card className="p-6 space-y-6 bg-white/95 backdrop-blur-sm">
+    <Card className="p-4 space-y-4 bg-white/95 backdrop-blur-sm max-w-[340px]">
       <div>
-        <h3 className="text-2xl font-bold text-primary mb-4">Audio Settings</h3>
+        <h3 className="text-xl font-bold text-primary mb-3">Audio Settings</h3>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {settings.sfxEnabled ? (
               <Volume2 className="h-5 w-5 text-primary" />
             ) : (
               <VolumeX className="h-5 w-5 text-muted-foreground" />
             )}
-            <Label className="text-base">Sound Effects</Label>
+            <Label className="text-sm">Sound Effects</Label>
           </div>
           <Button
             variant={settings.sfxEnabled ? "default" : "outline"}
             size="sm"
             onClick={toggleSfx}
+            className="h-8 px-3"
           >
             {settings.sfxEnabled ? "ON" : "OFF"}
           </Button>
         </div>
 
         {settings.sfxEnabled && (
-          <div className="pl-8">
-            <Label className="text-sm text-muted-foreground mb-2 block">Volume</Label>
+          <div className="pl-7">
+            <Label className="text-xs text-muted-foreground mb-1 block">Volume</Label>
             <Slider
               value={[settings.sfxVolume * 100]}
               onValueChange={(value) => setSfxVolume(value[0] / 100)}
@@ -47,24 +48,25 @@ export const AudioSettings = () => {
         )}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Music className={`h-5 w-5 ${settings.musicEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-            <Label className="text-base">Background Music</Label>
+            <Label className="text-sm">Background Music</Label>
           </div>
           <Button
             variant={settings.musicEnabled ? "default" : "outline"}
             size="sm"
             onClick={toggleMusic}
+            className="h-8 px-3"
           >
             {settings.musicEnabled ? "ON" : "OFF"}
           </Button>
         </div>
 
         {settings.musicEnabled && (
-          <div className="pl-8">
-            <Label className="text-sm text-muted-foreground mb-2 block">Volume</Label>
+          <div className="pl-7">
+            <Label className="text-xs text-muted-foreground mb-1 block">Volume</Label>
             <Slider
               value={[settings.musicVolume * 100]}
               onValueChange={(value) => setMusicVolume(value[0] / 100)}
