@@ -6,7 +6,7 @@ import { PlayerDisplay } from "@/components/game/PlayerDisplay";
 import { ColorPicker } from "@/components/game/ColorPicker";
 import { WinnerModal } from "@/components/game/WinnerModal";
 import { useGameState } from "@/hooks/useGameState";
-import { useWebRTC } from "@/hooks/useWebRTC";
+import { useWebRTCContext } from "@/contexts/WebRTCContext";
 import { useAudio } from "@/hooks/useAudio";
 import { ArrowLeft } from "lucide-react";
 import { makeOfflineAIDecision } from "@/lib/offlineAI";

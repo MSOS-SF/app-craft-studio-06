@@ -7,25 +7,28 @@ import Menu from "./pages/Menu";
 import Lobby from "./pages/Lobby";
 import Game from "./pages/Game";
 import NotFound from "./pages/NotFound";
+import { WebRTCProvider } from "@/contexts/WebRTCContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Menu />} />
-          <Route path="/lobby" element={<Lobby />} />
-          <Route path="/game" element={<Game />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <WebRTCProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Menu />} />
+            <Route path="/lobby" element={<Lobby />} />
+            <Route path="/game" element={<Game />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </WebRTCProvider>
 );
 
 export default App;

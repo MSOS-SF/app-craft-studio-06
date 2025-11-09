@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Copy, Users, QrCode, Camera, ArrowLeft } from "lucide-react";
-import { useWebRTC } from "@/hooks/useWebRTC";
+import { useWebRTCContext } from "@/contexts/WebRTCContext";
 import { QRCodeCanvas } from "qrcode.react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 
