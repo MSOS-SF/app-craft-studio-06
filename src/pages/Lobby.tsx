@@ -20,10 +20,11 @@ const Lobby = () => {
   const [playerData, setPlayerData] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showHostQRScanner, setShowHostQRScanner] = useState(false);
-  const [qrSize, setQrSize] = useState(180);
-  const [joinerQrSize, setJoinerQrSize] = useState(180);
+  const [qrSize, setQrSize] = useState(200);
+  const [joinerQrSize, setJoinerQrSize] = useState(200);
   const [gameStarted, setGameStarted] = useState(false);
   const [cameraPermission, setCameraPermission] = useState<'prompt' | 'granted' | 'denied'>('prompt');
+  const [maxQrSize, setMaxQrSize] = useState(300);
   
   const handleGameStateReceived = useCallback((message: any) => {
     console.log("Message received in lobby:", message);
@@ -62,6 +63,20 @@ const Lobby = () => {
   } = rtc;
 
   useEffect(() => {
+    const updateMaxSize = () => {
+      const screenWidth = window.innerWidth;
+      const maxSize = Math.min(300, screenWidth - 160);
+      setMaxQrSize(maxSize);
+      setQrSize(Math.min(200, maxSize));
+      setJoinerQrSize(Math.min(200, maxSize));
+    };
+    
+    updateMaxSize();
+    window.addEventListener('resize', updateMaxSize);
+    return () => window.removeEventListener('resize', updateMaxSize);
+  }, []);
+
+  useEffect(() => {
     rtc.setPlayerName(playerName || "");
     rtc.setMessageHandler(handleGameStateReceived);
   }, [playerName, handleGameStateReceived]);
@@ -73,9 +88,14 @@ const Lobby = () => {
     }
 
     if (isHost) {
+      console.log("Creating room as host...");
       createRoom();
     }
   }, [playerName, isHost, navigate]);
+  
+  useEffect(() => {
+    console.log("Offer data updated:", offerData ? "Generated" : "Empty");
+  }, [offerData]);
 
   const handleJoin = () => {
     if (!hostData.trim()) {
@@ -200,12 +220,12 @@ const Lobby = () => {
         Back
       </Button>
 
-      <Card className="w-full max-w-2xl p-8 bg-white/95 backdrop-blur-sm">
-        <div className="text-center mb-8">
-          <h2 className="text-4xl font-bold text-primary mb-2">
+      <Card className="w-full max-w-2xl p-4 sm:p-8 bg-white/95 backdrop-blur-sm overflow-hidden">
+        <div className="text-center mb-6 sm:mb-8">
+          <h2 className="text-2xl sm:text-4xl font-bold text-primary mb-2 break-words">
             Local Hotspot Game
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             {isHost ? "Share connection QR code with players" : "Scan host's QR code to join"}
           </p>
         </div>
@@ -219,23 +239,23 @@ const Lobby = () => {
                   <p className="text-xs text-muted-foreground mb-2">
                     Up to 3 players can scan this same QR code
                   </p>
-                  <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
-                    <div className="bg-white p-4 rounded-xl shadow-lg touch-none">
+                  <div className="flex flex-col items-center gap-3 p-3 sm:p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
+                    <div className="bg-white p-2 sm:p-4 rounded-xl shadow-lg">
                       <QRCodeCanvas 
                         value={offerData} 
-                        size={Math.min(qrSize, window.innerWidth - 120)}
+                        size={qrSize}
                         level="L"
-                        includeMargin={true}
+                        includeMargin={false}
                       />
                     </div>
                     <Button
-                      onClick={() => setQrSize(qrSize === 180 ? 350 : 180)}
+                      onClick={() => setQrSize(qrSize === 200 ? maxQrSize : 200)}
                       variant="outline"
                       size="sm"
                       className="gap-2"
                     >
                       <QrCode className="h-4 w-4" />
-                      {qrSize === 180 ? "Enlarge QR" : "Shrink QR"}
+                      {qrSize === 200 ? "Enlarge QR" : "Shrink QR"}
                     </Button>
                     <div className="w-full">
                       <Label className="text-sm mb-2 block">Or copy text:</Label>
@@ -386,23 +406,23 @@ const Lobby = () => {
                 <p className="text-xs text-muted-foreground mb-2">
                   Host can scan this QR code or copy the text:
                 </p>
-                <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
-                  <div className="bg-white p-4 rounded-xl shadow-lg touch-none">
+                <div className="flex flex-col items-center gap-3 p-3 sm:p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
+                  <div className="bg-white p-2 sm:p-4 rounded-xl shadow-lg">
                     <QRCodeCanvas 
                       value={offerData} 
-                      size={Math.min(joinerQrSize, window.innerWidth - 120)}
+                      size={joinerQrSize}
                       level="L"
-                      includeMargin={true}
+                      includeMargin={false}
                     />
                   </div>
                   <Button
-                    onClick={() => setJoinerQrSize(joinerQrSize === 180 ? 350 : 180)}
+                    onClick={() => setJoinerQrSize(joinerQrSize === 200 ? maxQrSize : 200)}
                     variant="outline"
                     size="sm"
                     className="gap-2"
                   >
                     <QrCode className="h-4 w-4" />
-                    {joinerQrSize === 180 ? "Enlarge QR" : "Shrink QR"}
+                    {joinerQrSize === 200 ? "Enlarge QR" : "Shrink QR"}
                   </Button>
                   <div className="w-full">
                     <Label className="text-sm mb-2 block">Or copy text:</Label>
