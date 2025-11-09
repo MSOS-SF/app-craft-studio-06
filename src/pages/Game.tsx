@@ -5,7 +5,7 @@ import { UnoCard } from "@/components/game/UnoCard";
 import { PlayerDisplay } from "@/components/game/PlayerDisplay";
 import { useGameState } from "@/hooks/useGameState";
 import { ArrowLeft } from "lucide-react";
-import { callAIPlayer } from "@/lib/supabaseClient";
+import { makeOfflineAIDecision } from "@/lib/offlineAI";
 
 const Game = () => {
   const location = useLocation();
@@ -25,15 +25,15 @@ const Game = () => {
     return null;
   }
 
-  // AI player logic - runs when it's AI's turn
+  // AI player logic - runs when it's AI's turn (OFFLINE)
   useEffect(() => {
     if (!isSinglePlayer || gameState.currentPlayerIndex === 0) return;
 
     const makeAIMove = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // AI thinking time
+      await new Promise(resolve => setTimeout(resolve, 1000)); // AI thinking time
 
       const currentPlayer = gameState.players[gameState.currentPlayerIndex];
-      const decision = await callAIPlayer(currentPlayer.hand, gameState.currentCard);
+      const decision = makeOfflineAIDecision(currentPlayer.hand, gameState.currentCard!);
 
       setGameState(prev => {
         if (decision.action === "draw") {
@@ -109,7 +109,7 @@ const Game = () => {
   }, [gameState.currentPlayerIndex, isSinglePlayer]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end overflow-hidden relative pb-64 md:pb-0">
       {/* Decorative triangles */}
       <div className="absolute inset-0 opacity-10 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -126,7 +126,7 @@ const Game = () => {
       </div>
 
       {/* Top opponent */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2">
+      <div className="absolute top-4 md:top-8 left-1/2 -translate-x-1/2">
         <PlayerDisplay
           name={gameState.players[1]?.name || "Player 2"}
           cardCount={gameState.players[1]?.hand.length || 7}
@@ -135,7 +135,7 @@ const Game = () => {
       </div>
 
       {/* Left opponent */}
-      <div className="absolute left-8 top-1/2 -translate-y-1/2">
+      <div className="absolute left-4 md:left-8 top-1/4 md:top-1/2 md:-translate-y-1/2">
         <PlayerDisplay
           name={gameState.players[2]?.name || "Player 3"}
           cardCount={gameState.players[2]?.hand.length || 7}
@@ -144,7 +144,7 @@ const Game = () => {
       </div>
 
       {/* Right opponent */}
-      <div className="absolute right-8 top-1/2 -translate-y-1/2">
+      <div className="absolute right-4 md:right-8 top-1/4 md:top-1/2 md:-translate-y-1/2">
         <PlayerDisplay
           name={gameState.players[3]?.name || "Player 4"}
           cardCount={gameState.players[3]?.hand.length || 7}
@@ -153,7 +153,7 @@ const Game = () => {
       </div>
 
       {/* Center play area */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-8">
+      <div className="absolute left-1/2 top-[35%] md:top-1/2 -translate-x-1/2 md:-translate-y-1/2 flex items-center gap-4 md:gap-8 scale-75 md:scale-100">
         {/* Draw pile */}
         <div className="relative cursor-pointer" onClick={drawCard}>
           <UnoCard color="wild" value="back" size="lg" />
@@ -175,7 +175,7 @@ const Game = () => {
         </div>
 
         {/* UNO logo */}
-        <div className="absolute -right-32 top-1/2 -translate-y-1/2">
+        <div className="hidden md:block absolute -right-32 top-1/2 -translate-y-1/2">
           <div className="bg-accent text-white font-bold text-4xl px-6 py-3 rounded-2xl shadow-2xl transform rotate-12">
             UNO
           </div>
@@ -183,26 +183,24 @@ const Game = () => {
       </div>
 
       {/* Player's hand */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-        <div className="bg-secondary/80 backdrop-blur-sm rounded-3xl p-6 shadow-2xl">
-          <div className="flex gap-2 items-end max-w-[90vw] overflow-x-auto pb-2">
-            {gameState.players[0]?.hand.map((card, index) => (
-              <div
-                key={`${card.color}-${card.value}-${index}`}
-                className={`transition-transform hover:-translate-y-4 cursor-pointer ${
-                  canPlayCard(card) ? "" : "opacity-50 cursor-not-allowed"
-                }`}
-                onClick={() => canPlayCard(card) && playCard(index)}
-              >
-                <UnoCard color={card.color} value={card.value} size="md" />
-              </div>
-            ))}
-          </div>
+      <div className="fixed bottom-0 left-0 right-0 bg-secondary/90 backdrop-blur-sm rounded-t-3xl p-4 md:p-6 shadow-2xl">
+        <div className="flex gap-2 md:gap-3 items-end max-w-full overflow-x-auto pb-2 justify-center">
+          {gameState.players[0]?.hand.map((card, index) => (
+            <div
+              key={`${card.color}-${card.value}-${index}`}
+              className={`transition-transform hover:-translate-y-4 cursor-pointer flex-shrink-0 ${
+                canPlayCard(card) ? "" : "opacity-50 cursor-not-allowed"
+              }`}
+              onClick={() => canPlayCard(card) && playCard(index)}
+            >
+              <UnoCard color={card.color} value={card.value} size="md" />
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Current player indicator */}
-      <div className="absolute bottom-40 left-1/2 -translate-x-1/2">
+      <div className="absolute bottom-48 md:bottom-40 left-1/2 -translate-x-1/2">
         {gameState.currentPlayerIndex === 0 ? (
           <div className="bg-accent text-white font-bold px-6 py-2 rounded-full shadow-lg animate-pulse">
             Your Turn
