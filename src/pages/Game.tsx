@@ -11,6 +11,9 @@ const Game = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { playerName, isSinglePlayer } = location.state || {};
+  const [showUnoButton, setShowUnoButton] = useState(false);
+  const [unoAnnouncement, setUnoAnnouncement] = useState<string | null>(null);
+  const [drawingAnimation, setDrawingAnimation] = useState(false);
 
   const { 
     gameState, 
@@ -24,6 +27,28 @@ const Game = () => {
     navigate("/");
     return null;
   }
+
+  // Check if player has 1 card - show UNO button
+  useEffect(() => {
+    const currentPlayer = gameState.players[0];
+    if (currentPlayer?.hand.length === 1 && gameState.currentPlayerIndex === 0) {
+      setShowUnoButton(true);
+    } else {
+      setShowUnoButton(false);
+    }
+  }, [gameState.players, gameState.currentPlayerIndex]);
+
+  const handleUnoClick = () => {
+    setShowUnoButton(false);
+    setUnoAnnouncement(`${playerName} says UNO!`);
+    setTimeout(() => setUnoAnnouncement(null), 3000);
+  };
+
+  const handleDrawCard = () => {
+    setDrawingAnimation(true);
+    drawCard();
+    setTimeout(() => setDrawingAnimation(false), 500);
+  };
 
   // AI player logic - runs when it's AI's turn (OFFLINE)
   useEffect(() => {
@@ -155,7 +180,10 @@ const Game = () => {
       {/* Center play area */}
       <div className="absolute left-1/2 top-[35%] md:top-1/2 -translate-x-1/2 md:-translate-y-1/2 flex items-center gap-4 md:gap-8 scale-75 md:scale-100">
         {/* Draw pile */}
-        <div className="relative cursor-pointer" onClick={drawCard}>
+        <div 
+          className={`relative cursor-pointer transition-transform ${drawingAnimation ? 'scale-110 animate-pulse' : ''}`} 
+          onClick={handleDrawCard}
+        >
           <UnoCard color="wild" value="back" size="lg" />
           <div className="absolute -top-2 -right-2 bg-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shadow-lg">
             {gameState.drawPile.length}
@@ -211,6 +239,33 @@ const Game = () => {
           </div>
         )}
       </div>
+
+      {/* UNO Button */}
+      {showUnoButton && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl p-8 shadow-2xl animate-scale-in">
+            <div className="text-center mb-6">
+              <div className="text-6xl font-bold text-accent mb-2">UNO!</div>
+              <p className="text-foreground">You have one card left!</p>
+            </div>
+            <Button 
+              onClick={handleUnoClick}
+              className="w-full bg-accent hover:bg-accent/90 text-white font-bold text-xl py-6"
+            >
+              Call UNO!
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* UNO Announcement */}
+      {unoAnnouncement && (
+        <div className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-scale-in">
+          <div className="bg-accent text-white font-bold text-5xl px-12 py-6 rounded-3xl shadow-2xl border-4 border-white">
+            {unoAnnouncement}
+          </div>
+        </div>
+      )}
 
       {/* Back button */}
       <Button

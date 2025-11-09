@@ -20,6 +20,15 @@ export const UnoCard = ({ color, value, size = "md" }: UnoCardProps) => {
   };
 
   const isBack = value === "back";
+  
+  // Get display value with emojis for special cards
+  const getDisplayValue = () => {
+    if (value === "reverse") return "🔄";
+    if (value === "skip") return "⊘";
+    return value;
+  };
+  
+  const displayValue = getDisplayValue();
 
   return (
     <div
@@ -34,23 +43,28 @@ export const UnoCard = ({ color, value, size = "md" }: UnoCardProps) => {
           {/* Card background ellipse */}
           <div className="absolute inset-2 bg-white rounded-full" />
           
-          {/* Card value */}
-          <div className={`relative z-10 font-bold ${
-            size === "lg" ? "text-4xl" : size === "md" ? "text-2xl" : "text-xl"
-          } ${color === "yellow" ? "text-uno-wild" : "text-uno-wild"}`}>
-            {value}
+          {/* Card value - white with black outline */}
+          <div 
+            className={`relative z-10 font-bold text-white ${
+              size === "lg" ? "text-4xl" : size === "md" ? "text-2xl" : "text-xl"
+            }`}
+            style={{
+              textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, -2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000'
+            }}
+          >
+            {displayValue}
           </div>
 
           {/* Corner values */}
           <div className={`absolute top-1 left-1 font-bold text-white ${
             size === "lg" ? "text-sm" : "text-xs"
           }`}>
-            {value}
+            {displayValue}
           </div>
           <div className={`absolute bottom-1 right-1 font-bold text-white rotate-180 ${
             size === "lg" ? "text-sm" : "text-xs"
           }`}>
-            {value}
+            {displayValue}
           </div>
         </>
       )}

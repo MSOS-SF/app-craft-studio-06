@@ -96,9 +96,9 @@ export const useGameState = (playerName: string, isSinglePlayer: boolean = false
   const canPlayCard = useCallback((card: Card): boolean => {
     if (!gameState.currentCard || gameState.currentPlayerIndex !== 0) return false;
     
-    if (card.color === "wild") return true;
-    
+    // Allow wild cards, same color, OR same value (regardless of color for number stacking)
     return (
+      card.color === "wild" ||
       card.color === gameState.currentCard.color ||
       card.value === gameState.currentCard.value
     );
