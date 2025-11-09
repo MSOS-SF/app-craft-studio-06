@@ -1,0 +1,4 @@
+project_id = "huioidbdtxwyekmwrcfr"
+
+[functions.uno-ai-player]
+verify_jwt = false

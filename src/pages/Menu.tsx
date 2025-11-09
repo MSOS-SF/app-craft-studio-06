@@ -11,6 +11,18 @@ const Menu = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const handleSinglePlayer = () => {
+    if (!playerName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your name before starting",
+        variant: "destructive",
+      });
+      return;
+    }
+    navigate("/game", { state: { playerName, isSinglePlayer: true } });
+  };
+
   const handleHost = () => {
     if (!playerName.trim()) {
       toast({
@@ -83,11 +95,19 @@ const Menu = () => {
           {!showHostOptions ? (
             <>
               <Button
+                onClick={handleSinglePlayer}
+                size="lg"
+                className="w-64 h-16 text-2xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl"
+              >
+                Single Player (AI)
+              </Button>
+
+              <Button
                 onClick={handleHost}
                 size="lg"
                 className="w-64 h-16 text-2xl font-bold bg-accent hover:bg-accent/90 text-accent-foreground shadow-2xl"
               >
-                Host Game
+                Host Multiplayer
               </Button>
 
               <Button
@@ -95,7 +115,7 @@ const Menu = () => {
                 size="lg"
                 className="w-64 h-16 text-2xl font-bold bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-2xl"
               >
-                Join Game
+                Join Multiplayer
               </Button>
             </>
           ) : (

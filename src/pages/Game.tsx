@@ -1,27 +1,112 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { UnoCard } from "@/components/game/UnoCard";
 import { PlayerDisplay } from "@/components/game/PlayerDisplay";
 import { useGameState } from "@/hooks/useGameState";
 import { ArrowLeft } from "lucide-react";
+import { callAIPlayer } from "@/lib/supabaseClient";
 
 const Game = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { playerName } = location.state || {};
+  const { playerName, isSinglePlayer } = location.state || {};
 
   const { 
     gameState, 
     playCard, 
     drawCard, 
-    canPlayCard 
-  } = useGameState(playerName);
+    canPlayCard,
+    setGameState 
+  } = useGameState(playerName, isSinglePlayer);
 
   if (!playerName) {
     navigate("/");
     return null;
   }
+
+  // AI player logic - runs when it's AI's turn
+  useEffect(() => {
+    if (!isSinglePlayer || gameState.currentPlayerIndex === 0) return;
+
+    const makeAIMove = async () => {
+      await new Promise(resolve => setTimeout(resolve, 1500)); // AI thinking time
+
+      const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+      const decision = await callAIPlayer(currentPlayer.hand, gameState.currentCard);
+
+      setGameState(prev => {
+        if (decision.action === "draw") {
+          // AI draws a card
+          if (prev.drawPile.length === 0) return prev;
+          
+          const drawnCard = prev.drawPile[0];
+          const newPlayers = [...prev.players];
+          newPlayers[prev.currentPlayerIndex] = {
+            ...newPlayers[prev.currentPlayerIndex],
+            hand: [...newPlayers[prev.currentPlayerIndex].hand, drawnCard],
+          };
+
+          return {
+            ...prev,
+            players: newPlayers,
+            drawPile: prev.drawPile.slice(1),
+            currentPlayerIndex: (prev.currentPlayerIndex + prev.direction + prev.players.length) % prev.players.length,
+          };
+        } else {
+          // AI plays a card
+          const card = currentPlayer.hand[decision.cardIndex];
+          const newPlayers = [...prev.players];
+          newPlayers[prev.currentPlayerIndex] = {
+            ...newPlayers[prev.currentPlayerIndex],
+            hand: currentPlayer.hand.filter((_, i) => i !== decision.cardIndex),
+          };
+
+          let finalCard = card;
+          if (card.color === "wild" && decision.newColor) {
+            finalCard = { ...card, color: decision.newColor as any };
+          }
+
+          let nextPlayerIndex = (prev.currentPlayerIndex + prev.direction + prev.players.length) % prev.players.length;
+          let newDirection = prev.direction;
+
+          // Handle special cards
+          if (card.value === "skip") {
+            nextPlayerIndex = (nextPlayerIndex + prev.direction + prev.players.length) % prev.players.length;
+          } else if (card.value === "reverse") {
+            newDirection = prev.direction * -1 as 1 | -1;
+          } else if (card.value === "+2") {
+            const targetPlayer = nextPlayerIndex;
+            const drawnCards = prev.drawPile.slice(0, 2);
+            newPlayers[targetPlayer] = {
+              ...newPlayers[targetPlayer],
+              hand: [...newPlayers[targetPlayer].hand, ...drawnCards],
+            };
+            nextPlayerIndex = (nextPlayerIndex + newDirection + prev.players.length) % prev.players.length;
+          } else if (card.value === "+4") {
+            const targetPlayer = nextPlayerIndex;
+            const drawnCards = prev.drawPile.slice(0, 4);
+            newPlayers[targetPlayer] = {
+              ...newPlayers[targetPlayer],
+              hand: [...newPlayers[targetPlayer].hand, ...drawnCards],
+            };
+            nextPlayerIndex = (nextPlayerIndex + newDirection + prev.players.length) % prev.players.length;
+          }
+
+          return {
+            ...prev,
+            players: newPlayers,
+            currentCard: finalCard,
+            currentPlayerIndex: nextPlayerIndex,
+            direction: newDirection,
+            discardPile: [...prev.discardPile, finalCard],
+          };
+        }
+      });
+    };
+
+    makeAIMove();
+  }, [gameState.currentPlayerIndex, isSinglePlayer]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end overflow-hidden relative">
