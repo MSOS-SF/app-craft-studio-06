@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { UnoCard } from "@/components/game/UnoCard";
 import { PlayerDisplay } from "@/components/game/PlayerDisplay";
 import { useGameState } from "@/hooks/useGameState";
+import { ArrowLeft } from "lucide-react";
 
 const Game = () => {
   const location = useLocation();
@@ -128,13 +129,15 @@ const Game = () => {
         )}
       </div>
 
-      {/* Menu button */}
+      {/* Back button */}
       <Button
         onClick={() => navigate("/")}
-        variant="secondary"
-        className="absolute top-4 right-4"
+        variant="outline"
+        size="sm"
+        className="absolute top-4 left-4 bg-white/90 hover:bg-white gap-2 z-10"
       >
-        ☰ Menu
+        <ArrowLeft className="h-4 w-4" />
+        Back
       </Button>
     </div>
   );

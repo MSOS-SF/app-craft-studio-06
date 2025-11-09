@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Users, QrCode, Camera } from "lucide-react";
+import { Copy, Users, QrCode, Camera, ArrowLeft } from "lucide-react";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import { QRCodeCanvas } from "qrcode.react";
 import { Scanner } from "@yudiel/react-qr-scanner";
@@ -106,6 +106,16 @@ const Lobby = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end flex items-center justify-center p-4">
+      <Button
+        onClick={() => navigate("/")}
+        variant="outline"
+        size="sm"
+        className="absolute top-4 left-4 bg-white/90 hover:bg-white gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back
+      </Button>
+
       <Card className="w-full max-w-2xl p-8 bg-white/95 backdrop-blur-sm">
         <div className="text-center mb-8">
           <h2 className="text-4xl font-bold text-primary mb-2">
