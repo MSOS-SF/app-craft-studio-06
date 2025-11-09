@@ -44,10 +44,12 @@ const Game = () => {
     }
   }, [setGameState]);
 
-  const { broadcastGameState, isConnected, connectedPlayerCount } = useWebRTC(
-    playerName, 
-    handleGameStateReceived
-  );
+  const rtc = useWebRTCContext();
+  const { broadcastGameState, isConnected, connectedPlayerCount } = rtc;
+  useEffect(() => {
+    rtc.setPlayerName(playerName || "");
+    rtc.setMessageHandler(handleGameStateReceived);
+  }, [playerName, handleGameStateReceived]);
 
   const { playCardDraw, playCardPlay, playWin, playBackgroundMusic } = useAudio();
 
@@ -56,9 +58,13 @@ const Game = () => {
     return null;
   }
 
-  // Start background music on mount
+  // Start background music on mount and broadcast initial state if host
   useEffect(() => {
     const cleanup = playBackgroundMusic();
+    if (isMultiplayer && isHost) {
+      // Send authoritative initial state so all devices sync before first move
+      setTimeout(() => broadcastGameState({ type: "game_state", data: gameState }), 200);
+    }
     return cleanup;
   }, [playBackgroundMusic]);
 

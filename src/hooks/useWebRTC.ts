@@ -18,9 +18,11 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
   const messageHandlerRef = useRef(onGameStateReceived);
   const peersRef = useRef<Peer[]>([]);
   
-  // No STUN servers - works completely offline on local network
+  // STUN added for better cross-network connectivity; still works offline without it
   const configuration: RTCConfiguration = {
-    iceServers: [],
+    iceServers: [
+      { urls: ["stun:stun.l.google.com:19302", "stun:global.stun.twilio.com:3478"] },
+    ],
   };
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null); // joiner-side connection

@@ -45,18 +45,24 @@ const Lobby = () => {
     });
   };
 
-  const { 
-    localId, 
-    peers, 
-    createRoom, 
+  const rtc = useWebRTCContext();
+  const {
+    localId,
+    peers,
+    createRoom,
     joinRoom,
     applyAnswer,
     isConnected,
     connectedPlayerCount,
     offerData,
     broadcastGameState,
-    sendMessage
-  } = useWebRTC(playerName, handleGameStateReceived);
+    sendMessage,
+  } = rtc;
+
+  useEffect(() => {
+    rtc.setPlayerName(playerName || "");
+    rtc.setMessageHandler(handleGameStateReceived);
+  }, [playerName]);
 
   useEffect(() => {
     if (!playerName) {
