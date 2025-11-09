@@ -100,8 +100,8 @@ const Lobby = () => {
   };
 
   const players = [
-    { name: playerName, id: localId, isYou: true },
-    ...peers.map(peer => ({ name: peer.name, id: peer.id, isYou: false }))
+    { name: playerName || "You", id: localId, isYou: true },
+    ...peers.map(peer => ({ name: peer.name || "Player", id: peer.id, isYou: false }))
   ];
 
   return (
@@ -324,10 +324,10 @@ const Lobby = () => {
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                     <span className="text-lg font-bold text-primary">
-                      {player.name.charAt(0).toUpperCase()}
+                      {player.name?.charAt(0).toUpperCase() || "?"}
                     </span>
                   </div>
-                  <span className="font-medium">{player.name}</span>
+                  <span className="font-medium">{player.name || "Unknown"}</span>
                 </div>
                 {player.isYou && (
                   <span className="text-sm text-primary font-medium">You</span>
