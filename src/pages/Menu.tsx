@@ -49,23 +49,20 @@ const Menu = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end flex items-center justify-center p-4">
-      <div className="absolute top-8 right-8">
+      <div className="text-center space-y-8 w-full max-w-md">
         <Input
           type="text"
           placeholder="Enter your name"
           value={playerName}
           onChange={(e) => setPlayerName(e.target.value)}
-          className="w-64 bg-white/90 backdrop-blur-sm border-2 border-white shadow-lg"
+          className="w-full bg-white/90 backdrop-blur-sm border-2 border-white shadow-lg text-base"
           maxLength={20}
         />
-      </div>
-
-      <div className="text-center space-y-12">
-        <div>
-          <h1 className="text-8xl font-bold text-white mb-4 drop-shadow-2xl">
+        <div className="mt-4">
+          <h1 className="text-6xl md:text-8xl font-bold text-white mb-4 drop-shadow-2xl">
             UNO
           </h1>
-          <p className="text-2xl text-white/90 drop-shadow-lg">
+          <p className="text-xl md:text-2xl text-white/90 drop-shadow-lg">
             Local Multiplayer Game
           </p>
         </div>
