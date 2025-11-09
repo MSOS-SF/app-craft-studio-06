@@ -163,20 +163,24 @@ const Lobby = () => {
                   <p className="text-xs text-muted-foreground mb-2">
                     Player can scan this with their camera
                   </p>
-                  <div className="flex flex-col items-center gap-4 p-4 bg-white rounded-lg">
-                    <QRCodeCanvas 
-                      value={offerData} 
-                      size={200}
-                      level="L"
-                      className="border-4 border-primary/10 rounded-lg"
-                    />
+                  <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
+                    <div className="bg-white p-4 rounded-xl shadow-lg">
+                      <QRCodeCanvas 
+                        value={offerData} 
+                        size={220}
+                        level="M"
+                        fgColor="#8B5CF6"
+                        bgColor="#FFFFFF"
+                        includeMargin={true}
+                      />
+                    </div>
                     <div className="w-full">
-                      <Label className="text-sm mb-2 block">Or copy manually:</Label>
+                      <Label className="text-sm mb-2 block">Or copy text:</Label>
                       <div className="flex gap-2">
-                        <textarea 
+                        <Input
                           value={offerData} 
                           readOnly 
-                          className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                          className="text-xs font-mono"
                         />
                         <Button 
                           size="icon"
@@ -316,20 +320,24 @@ const Lobby = () => {
                 <p className="text-xs text-muted-foreground mb-2">
                   Host can scan this QR code or copy the text:
                 </p>
-                <div className="flex flex-col items-center gap-4 p-4 bg-white rounded-lg">
-                  <QRCodeCanvas 
-                    value={offerData} 
-                    size={200}
-                    level="L"
-                    className="border-4 border-primary/10 rounded-lg"
-                  />
+                <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
+                  <div className="bg-white p-4 rounded-xl shadow-lg">
+                    <QRCodeCanvas 
+                      value={offerData} 
+                      size={220}
+                      level="M"
+                      fgColor="#8B5CF6"
+                      bgColor="#FFFFFF"
+                      includeMargin={true}
+                    />
+                  </div>
                   <div className="w-full">
-                    <Label className="text-sm mb-2 block">Or copy manually:</Label>
+                    <Label className="text-sm mb-2 block">Or copy text:</Label>
                     <div className="flex gap-2">
-                      <textarea 
+                      <Input
                         value={offerData} 
                         readOnly 
-                        className="flex min-h-[60px] w-full rounded-md border border-input bg-background px-3 py-2 text-xs font-mono ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                        className="text-xs font-mono"
                       />
                       <Button 
                         size="icon"
