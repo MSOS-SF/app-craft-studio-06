@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,14 +26,18 @@ const Lobby = () => {
   const [joinerQrSize, setJoinerQrSize] = useState(180);
   const [gameStarted, setGameStarted] = useState(false);
   
-  const handleGameStateReceived = (message: any) => {
+  const handleGameStateReceived = useCallback((message: any) => {
     console.log("Message received in lobby:", message);
-    
-    if (message.type === "start_game") {
+    // Guard against invalid messages and unwrap nested game_state envelopes
+    if (!message || typeof message !== "object") return;
+    let payload: any = message;
+    while (payload && payload.type === "game_state" && payload.data) {
+      payload = payload.data;
+    }
+    if (payload?.type === "start_game") {
       setGameStarted(true);
     }
-  };
-
+  }, []);
   const handleJoinGame = () => {
     navigate("/game", { 
       state: { 
@@ -62,7 +66,7 @@ const Lobby = () => {
   useEffect(() => {
     rtc.setPlayerName(playerName || "");
     rtc.setMessageHandler(handleGameStateReceived);
-  }, [playerName]);
+  }, [playerName, handleGameStateReceived]);
 
   useEffect(() => {
     if (!playerName) {
