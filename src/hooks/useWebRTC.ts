@@ -23,8 +23,12 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
     iceServers: [],
   };
 
-  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
-  const dataChannelRef = useRef<RTCDataChannel | null>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null); // joiner-side connection
+  const dataChannelRef = useRef<RTCDataChannel | null>(null); // joiner-side channel
+  // Host-side pending connection/channel used to generate an offer for the next player
+  const hostPendingConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const hostPendingChannelRef = useRef<RTCDataChannel | null>(null);
+  const currentRoomCodeRef = useRef<string>("");
   const [offerData, setOfferData] = useState<string>("");
   
   // Keep peersRef in sync with peers state
@@ -39,6 +43,43 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
     messageHandlerRef.current = onGameStateReceived;
   }, [onGameStateReceived]);
 
+  // Host: generate a fresh offer to be shared with the next player
+  const generateHostOffer = async (roomCode: string) => {
+    const pc = new RTCPeerConnection(configuration);
+    const channel = pc.createDataChannel("game");
+
+    channel.onopen = () => {
+      console.log("Host data channel opened");
+    };
+    channel.onmessage = (event) => {
+      handleIncomingMessage(event.data);
+    };
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    await new Promise<void>((resolve) => {
+      if (pc.iceGatheringState === 'complete') resolve();
+      else pc.onicegatheringstatechange = () => {
+        if (pc.iceGatheringState === 'complete') resolve();
+      };
+    });
+
+    hostPendingConnectionRef.current = pc;
+    hostPendingChannelRef.current = channel;
+
+    const connectionData = {
+      r: roomCode,
+      i: localId,
+      n: playerName,
+      o: pc.localDescription,
+    };
+
+    const jsonStr = JSON.stringify(connectionData);
+    const compressed = pako.deflate(jsonStr);
+    const connectionString = btoa(String.fromCharCode(...compressed));
+    setOfferData(connectionString);
+  };
   const handleIncomingMessage = useCallback((message: string) => {
     try {
       const data = JSON.parse(message);
@@ -54,45 +95,10 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
 
   const createRoom = async (roomCode: string) => {
     console.log(`Creating room as host: ${roomCode}`);
-    
-    // Create a temporary peer connection to generate offer
-    const tempConnection = new RTCPeerConnection(configuration);
-    const tempChannel = tempConnection.createDataChannel("game");
-    
-    // Create offer
-    const offer = await tempConnection.createOffer();
-    await tempConnection.setLocalDescription(offer);
-    
-    // Wait for ICE gathering
-    await new Promise<void>((resolve) => {
-      if (tempConnection.iceGatheringState === 'complete') {
-        resolve();
-      } else {
-        tempConnection.onicegatheringstatechange = () => {
-          if (tempConnection.iceGatheringState === 'complete') {
-            resolve();
-          }
-        };
-      }
-    });
-    
-    // Generate shareable offer that multiple players can use
-    const connectionData = {
-      r: roomCode,
-      i: localId,
-      n: playerName,
-      o: tempConnection.localDescription,
-    };
-    
-    // Clean up temp connection (we'll create new ones for each joiner)
-    tempConnection.close();
-    
-    // Compress and encode
-    const jsonStr = JSON.stringify(connectionData);
-    const compressed = pako.deflate(jsonStr);
-    const connectionString = btoa(String.fromCharCode(...compressed));
-    setOfferData(connectionString);
-    
+    currentRoomCodeRef.current = roomCode;
+
+    await generateHostOffer(roomCode);
+
     toast({
       title: "Room Created",
       description: "Up to 3 players can scan this QR code to join",
@@ -208,58 +214,49 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
       const compressed = Uint8Array.from(atob(answerString), c => c.charCodeAt(0));
       const decompressed = pako.inflate(compressed, { to: 'string' });
       const answerData = JSON.parse(decompressed);
-      
-      // Create new peer connection for this player
-      const newPeerConnection = new RTCPeerConnection(configuration);
-      const newPeerId = answerData.i;
-      const newPeerName = answerData.n || `Player ${peersRef.current.length + 2}`;
-      
-      // Create data channel
-      const newChannel = newPeerConnection.createDataChannel("game");
-      
-      newChannel.onopen = () => {
-        console.log(`Data channel opened for ${newPeerName}`);
+
+      const pc = hostPendingConnectionRef.current;
+      const channel = hostPendingChannelRef.current;
+
+      if (!pc || !channel || !answerData?.a) {
+        toast({
+          title: "Connection Failed",
+          description: "Invalid or expired invitation. Create a new QR and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await pc.setRemoteDescription(answerData.a as RTCSessionDescriptionInit);
+
+      const newPeer: Peer = {
+        id: answerData.i,
+        name: answerData.n || `Player ${peersRef.current.length + 2}`,
+        connection: pc,
+        channel,
+      };
+
+      // When channel opens, update connected state
+      channel.onopen = () => {
+        console.log(`Data channel opened for ${newPeer.name}`);
+        setIsConnected(true);
         toast({
           title: "Player Connected",
-          description: `${newPeerName} joined the game`,
+          description: `${newPeer.name} joined the game`,
         });
       };
-      
-      newChannel.onmessage = (event) => {
-        handleIncomingMessage(event.data);
-      };
-      
-      // Create offer for this specific peer
-      const offer = await newPeerConnection.createOffer();
-      await newPeerConnection.setLocalDescription(offer);
-      
-      // Wait for ICE gathering
-      await new Promise<void>((resolve) => {
-        if (newPeerConnection.iceGatheringState === 'complete') {
-          resolve();
-        } else {
-          newPeerConnection.onicegatheringstatechange = () => {
-            if (newPeerConnection.iceGatheringState === 'complete') {
-              resolve();
-            }
-          };
-        }
-      });
-      
-      // Set remote description (player's answer)
-      await newPeerConnection.setRemoteDescription(answerData.a);
-      
-      // Add to peers
-      const newPeer: Peer = {
-        id: newPeerId,
-        name: newPeerName,
-        connection: newPeerConnection,
-        channel: newChannel,
-      };
-      
+      channel.onmessage = (event) => handleIncomingMessage(event.data);
+
       setPeers(prev => [...prev, newPeer]);
-      console.log(`Peer ${newPeerName} added successfully`);
-      
+      console.log(`Peer ${newPeer.name} added successfully`);
+
+      // Prepare next invitation if room isn't full yet
+      if (peersRef.current.length + 1 < 4 && currentRoomCodeRef.current) {
+        await generateHostOffer(currentRoomCodeRef.current);
+      } else {
+        setOfferData("");
+      }
+
     } catch (error) {
       console.error("Error applying answer:", error);
       toast({
