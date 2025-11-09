@@ -85,8 +85,8 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
       const data = JSON.parse(message);
       console.log("Received message:", data);
       
-      if (data.type === "game_state" && messageHandlerRef.current) {
-        messageHandlerRef.current(data.data);
+      if (messageHandlerRef.current) {
+        messageHandlerRef.current(data);
       }
     } catch (error) {
       console.error("Error parsing message:", error);

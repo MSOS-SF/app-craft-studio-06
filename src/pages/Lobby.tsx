@@ -25,9 +25,20 @@ const Lobby = () => {
   const [qrSize, setQrSize] = useState(180);
   const [joinerQrSize, setJoinerQrSize] = useState(180);
   
-  const handleGameStateReceived = (gameState: any) => {
-    console.log("Game state received in lobby:", gameState);
-    // This will be handled in the Game component
+  const handleGameStateReceived = (message: any) => {
+    console.log("Message received in lobby:", message);
+    
+    if (message.type === "start_game") {
+      // Navigate to game when host starts
+      navigate("/game", { 
+        state: { 
+          playerName, 
+          isHost: false, 
+          roomCode: message.roomCode,
+          isMultiplayer: true 
+        } 
+      });
+    }
   };
 
   const { 
@@ -39,7 +50,8 @@ const Lobby = () => {
     isConnected,
     connectedPlayerCount,
     offerData,
-    broadcastGameState
+    broadcastGameState,
+    sendMessage
   } = useWebRTC(playerName, handleGameStateReceived);
 
   useEffect(() => {
@@ -115,6 +127,11 @@ const Lobby = () => {
       });
       return;
     }
+    
+    // Broadcast start game message to all players
+    sendMessage({ type: "start_game", roomCode });
+    
+    // Navigate host to game
     navigate("/game", { state: { playerName, isHost, roomCode, isMultiplayer: true } });
   };
 

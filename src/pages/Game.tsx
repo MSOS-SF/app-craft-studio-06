@@ -31,9 +31,16 @@ const Game = () => {
     setGameState 
   } = useGameState(playerName, isSinglePlayer);
 
-  const handleGameStateReceived = useCallback((receivedGameState: any) => {
-    console.log("Received game state update:", receivedGameState);
-    setGameState(receivedGameState);
+  const handleGameStateReceived = useCallback((message: any) => {
+    console.log("Received message in game:", message);
+    
+    // Handle wrapped messages with type field
+    if (message.type === "game_state") {
+      setGameState(message.data);
+    } else {
+      // Handle direct game state (backwards compatibility)
+      setGameState(message);
+    }
   }, [setGameState]);
 
   const { broadcastGameState, isConnected, connectedPlayerCount } = useWebRTC(
@@ -96,10 +103,10 @@ const Game = () => {
     const newState = drawCard();
     setTimeout(() => setDrawingAnimation(false), 500);
     
-    // Broadcast state in multiplayer
-    if (isMultiplayer && isHost && newState) {
-      setTimeout(() => broadcastGameState(newState), 100);
-    }
+      // Broadcast state in multiplayer
+      if (isMultiplayer && isHost && newState) {
+        setTimeout(() => broadcastGameState({ type: "game_state", data: newState }), 100);
+      }
   };
 
   const handlePlayCard = (cardIndex: number) => {
@@ -122,7 +129,7 @@ const Game = () => {
       
       // Broadcast state in multiplayer
       if (isMultiplayer && isHost && newState) {
-        setTimeout(() => broadcastGameState(newState), 100);
+        setTimeout(() => broadcastGameState({ type: "game_state", data: newState }), 100);
       }
     }, 300);
   };
@@ -171,7 +178,7 @@ const Game = () => {
       
       // Broadcast state in multiplayer
       if (isMultiplayer && isHost) {
-        setTimeout(() => broadcastGameState(newState), 100);
+        setTimeout(() => broadcastGameState({ type: "game_state", data: newState }), 100);
       }
       
       return newState;
