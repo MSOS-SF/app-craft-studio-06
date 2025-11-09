@@ -16,8 +16,6 @@ const Lobby = () => {
   const { toast } = useToast();
   const { playerName, isHost } = location.state || {};
   
-  const [roomCode, setRoomCode] = useState("");
-  const [joinCode, setJoinCode] = useState("");
   const [hostData, setHostData] = useState("");
   const [playerData, setPlayerData] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -43,7 +41,6 @@ const Lobby = () => {
       state: { 
         playerName, 
         isHost: false, 
-        roomCode,
         isMultiplayer: true 
       } 
     });
@@ -74,18 +71,16 @@ const Lobby = () => {
       return;
     }
 
-    if (isHost && !roomCode) {
-      const code = Math.random().toString(36).substring(2, 6).toUpperCase();
-      setRoomCode(code);
-      createRoom(code);
+    if (isHost) {
+      createRoom();
     }
   }, [playerName, isHost, navigate]);
 
   const handleJoin = () => {
-    if (!joinCode.trim() || !hostData.trim()) {
+    if (!hostData.trim()) {
       toast({
         title: "Missing Information",
-        description: "Enter room code and host's connection data",
+        description: "Scan host's QR code or paste connection data",
         variant: "destructive",
       });
       return;
@@ -143,10 +138,10 @@ const Lobby = () => {
     }
     
     // Broadcast start game message to all players
-    sendMessage({ type: "start_game", roomCode });
+    sendMessage({ type: "start_game" });
     
     // Navigate host to game
-    navigate("/game", { state: { playerName, isHost, roomCode, isMultiplayer: true } });
+    navigate("/game", { state: { playerName, isHost, isMultiplayer: true } });
   };
 
   const players = [
@@ -172,31 +167,13 @@ const Lobby = () => {
             Local Hotspot Game
           </h2>
           <p className="text-sm text-muted-foreground">
-            {isHost ? "Share room code & connection data" : "Enter room details to join"}
+            {isHost ? "Share connection QR code with players" : "Scan host's QR code to join"}
           </p>
         </div>
 
         {isHost ? (
           <div className="mb-6 space-y-6">
             <div className="p-6 bg-primary/5 rounded-lg border-2 border-primary/20 space-y-4">
-              <div>
-                <Label className="text-lg font-semibold mb-2 block">Room Code</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    value={roomCode} 
-                    readOnly 
-                    className="text-2xl font-bold text-center tracking-widest"
-                  />
-                  <Button 
-                    size="icon"
-                    onClick={() => copyToClipboard(roomCode)}
-                    variant="secondary"
-                  >
-                    <Copy className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-
               {offerData && (
                 <div>
                   <Label className="text-lg font-semibold mb-2 block">Connection QR Code</Label>
@@ -312,17 +289,6 @@ const Lobby = () => {
           <div className="mb-6 space-y-4">
             <div className="p-6 bg-muted rounded-lg space-y-4">
               <div>
-                <Label className="font-semibold mb-2 block">Room Code</Label>
-                <Input
-                  value={joinCode}
-                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                  placeholder="Enter room code (e.g., AB12)"
-                  className="text-xl font-bold text-center tracking-widest"
-                  maxLength={4}
-                />
-              </div>
-
-              <div>
                 <Label className="font-semibold mb-2 flex items-center justify-between">
                   Host's Connection Data
                   <Button
@@ -364,7 +330,7 @@ const Lobby = () => {
                 className="w-full" 
                 size="lg"
                 onClick={handleJoin}
-                disabled={!joinCode.trim() || !hostData.trim()}
+                disabled={!hostData.trim()}
               >
                 Join Room
               </Button>

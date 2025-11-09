@@ -30,7 +30,6 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
   // Host-side pending connection/channel used to generate an offer for the next player
   const hostPendingConnectionRef = useRef<RTCPeerConnection | null>(null);
   const hostPendingChannelRef = useRef<RTCDataChannel | null>(null);
-  const currentRoomCodeRef = useRef<string>("");
   const [offerData, setOfferData] = useState<string>("");
   
   // Keep peersRef in sync with peers state
@@ -46,7 +45,7 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
   }, [onGameStateReceived]);
 
   // Host: generate a fresh offer to be shared with the next player
-  const generateHostOffer = async (roomCode: string) => {
+  const generateHostOffer = async () => {
     const pc = new RTCPeerConnection(configuration);
     const channel = pc.createDataChannel("game");
 
@@ -71,7 +70,6 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
     hostPendingChannelRef.current = channel;
 
     const connectionData = {
-      r: roomCode,
       i: localId,
       n: playerName,
       o: pc.localDescription,
@@ -95,11 +93,10 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
     }
   }, []);
 
-  const createRoom = async (roomCode: string) => {
-    console.log(`Creating room as host: ${roomCode}`);
-    currentRoomCodeRef.current = roomCode;
+  const createRoom = async () => {
+    console.log(`Creating room as host`);
 
-    await generateHostOffer(roomCode);
+    await generateHostOffer();
 
     toast({
       title: "Room Created",
@@ -253,8 +250,8 @@ export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: 
       console.log(`Peer ${newPeer.name} added successfully`);
 
       // Prepare next invitation if room isn't full yet
-      if (peersRef.current.length + 1 < 4 && currentRoomCodeRef.current) {
-        await generateHostOffer(currentRoomCodeRef.current);
+      if (peersRef.current.length + 1 < 4) {
+        await generateHostOffer();
       } else {
         setOfferData("");
       }
