@@ -88,35 +88,20 @@ export const useAudio = () => {
       return;
     }
 
-    // Create a simple ambient tone pattern
-    const playAmbient = () => {
-      if (!settings.musicEnabled || !audioContextRef.current) return;
+    if (!musicRef.current) {
+      musicRef.current = new Audio('/background-music.mp3');
+      musicRef.current.loop = true;
+      musicRef.current.volume = settings.musicVolume;
+    }
 
-      const ctx = audioContextRef.current;
-      const notes = [261.63, 329.63, 392.00, 523.25]; // C, E, G, C (major chord)
-      
-      notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.frequency.value = freq;
-        osc.type = 'sine';
-        gain.gain.value = settings.musicVolume * 0.1;
-        
-        const startTime = ctx.currentTime + i * 0.5;
-        osc.start(startTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, startTime + 2);
-        osc.stop(startTime + 2);
-      });
-    };
-
-    playAmbient();
-    const interval = setInterval(playAmbient, 8000);
+    musicRef.current.volume = settings.musicVolume;
+    musicRef.current.play().catch(err => console.log('Audio play failed:', err));
     
-    return () => clearInterval(interval);
+    return () => {
+      if (musicRef.current) {
+        musicRef.current.pause();
+      }
+    };
   }, [settings.musicEnabled, settings.musicVolume]);
 
   const toggleSfx = useCallback(() => {
