@@ -25,6 +25,11 @@ const Lobby = () => {
   const [qrSize, setQrSize] = useState(180);
   const [joinerQrSize, setJoinerQrSize] = useState(180);
   
+  const handleGameStateReceived = (gameState: any) => {
+    console.log("Game state received in lobby:", gameState);
+    // This will be handled in the Game component
+  };
+
   const { 
     localId, 
     peers, 
@@ -32,8 +37,9 @@ const Lobby = () => {
     joinRoom,
     applyAnswer,
     isConnected,
-    offerData
-  } = useWebRTC(playerName);
+    offerData,
+    broadcastGameState
+  } = useWebRTC(playerName, handleGameStateReceived);
 
   useEffect(() => {
     if (!playerName) {
@@ -108,7 +114,7 @@ const Lobby = () => {
       });
       return;
     }
-    navigate("/game", { state: { playerName, isHost, roomCode } });
+    navigate("/game", { state: { playerName, isHost, roomCode, isMultiplayer: true } });
   };
 
   const players = [

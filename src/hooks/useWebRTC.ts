@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import pako from "pako";
 
@@ -9,11 +9,12 @@ interface Peer {
   channel: RTCDataChannel;
 }
 
-export const useWebRTC = (playerName: string) => {
+export const useWebRTC = (playerName: string, onGameStateReceived?: (gameState: any) => void) => {
   const [localId] = useState(() => Math.random().toString(36).substring(7));
   const [peers, setPeers] = useState<Peer[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
+  const messageHandlerRef = useRef(onGameStateReceived);
   
   // No STUN servers - works completely offline on local network
   const configuration: RTCConfiguration = {
@@ -23,6 +24,24 @@ export const useWebRTC = (playerName: string) => {
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const [offerData, setOfferData] = useState<string>("");
+
+  // Update message handler ref when callback changes
+  useEffect(() => {
+    messageHandlerRef.current = onGameStateReceived;
+  }, [onGameStateReceived]);
+
+  const handleIncomingMessage = useCallback((message: string) => {
+    try {
+      const data = JSON.parse(message);
+      console.log("Received message:", data);
+      
+      if (data.type === "game_state" && messageHandlerRef.current) {
+        messageHandlerRef.current(data.data);
+      }
+    } catch (error) {
+      console.error("Error parsing message:", error);
+    }
+  }, []);
 
   const createRoom = async (roomCode: string) => {
     console.log(`Creating room as host: ${roomCode}`);
@@ -43,7 +62,7 @@ export const useWebRTC = (playerName: string) => {
     };
     
     dataChannelRef.current.onmessage = (event) => {
-      console.log("Received message:", event.data);
+      handleIncomingMessage(event.data);
     };
     
     // Create offer
@@ -113,7 +132,7 @@ export const useWebRTC = (playerName: string) => {
         };
         
         dataChannelRef.current.onmessage = (event) => {
-          console.log("Received message:", event.data);
+          handleIncomingMessage(event.data);
         };
       };
       
@@ -162,6 +181,14 @@ export const useWebRTC = (playerName: string) => {
   };
 
   const sendMessage = (message: any) => {
+    // Send through data channel if it exists and is open
+    if (dataChannelRef.current && dataChannelRef.current.readyState === "open") {
+      console.log("Sending message:", message);
+      dataChannelRef.current.send(JSON.stringify(message));
+      return;
+    }
+    
+    // Fallback to peers array
     peers.forEach(peer => {
       if (peer.channel.readyState === "open") {
         peer.channel.send(JSON.stringify(message));

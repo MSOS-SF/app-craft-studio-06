@@ -42,11 +42,7 @@ const Menu = () => {
   };
 
   const handleHostWithBluetooth = () => {
-    toast({
-      title: "Bluetooth Coming Soon",
-      description: "Build the APK first, then Bluetooth will be available",
-    });
-    // navigate("/lobby", { state: { playerName, isHost: true, connectionType: "bluetooth" } });
+    navigate("/lobby", { state: { playerName, playerEmoji: selectedEmoji, isHost: true, connectionType: "bluetooth" } });
   };
 
   const handleJoin = () => {

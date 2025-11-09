@@ -1,3 +1,5 @@
+import unoCardBack from "@/assets/uno-card-back.png";
+
 interface UnoCardProps {
   color: "red" | "yellow" | "green" | "blue" | "wild";
   value: string | number;
@@ -36,11 +38,15 @@ export const UnoCard = ({ color, value, size = "md" }: UnoCardProps) => {
   return (
     <div
       className={`${sizeClasses[size]} ${
-        isBack ? "bg-uno-wild" : colorClasses[color]
+        isBack ? "bg-black" : colorClasses[color]
       } rounded-xl border-[3px] border-white shadow-2xl flex items-center justify-center relative overflow-hidden transition-transform`}
     >
       {isBack ? (
-        <div className="absolute inset-0 bg-gradient-to-br from-uno-red via-uno-yellow to-uno-blue opacity-30" />
+        <img 
+          src={unoCardBack} 
+          alt="UNO Card Back" 
+          className="absolute inset-0 w-full h-full object-cover"
+        />
       ) : (
         <>
           {/* Diagonal stripe design */}

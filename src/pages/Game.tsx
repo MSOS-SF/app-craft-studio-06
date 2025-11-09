@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { UnoCard } from "@/components/game/UnoCard";
@@ -6,6 +6,7 @@ import { PlayerDisplay } from "@/components/game/PlayerDisplay";
 import { ColorPicker } from "@/components/game/ColorPicker";
 import { WinnerModal } from "@/components/game/WinnerModal";
 import { useGameState } from "@/hooks/useGameState";
+import { useWebRTC } from "@/hooks/useWebRTC";
 import { ArrowLeft } from "lucide-react";
 import { makeOfflineAIDecision } from "@/lib/offlineAI";
 import type { CardColor } from "@/hooks/useGameState";
@@ -13,7 +14,7 @@ import type { CardColor } from "@/hooks/useGameState";
 const Game = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { playerName, playerEmoji = "😀", isSinglePlayer } = location.state || {};
+  const { playerName, playerEmoji = "😀", isSinglePlayer, isHost, isMultiplayer } = location.state || {};
   const [showUnoButton, setShowUnoButton] = useState(false);
   const [unoAnnouncement, setUnoAnnouncement] = useState<string | null>(null);
   const [drawingAnimation, setDrawingAnimation] = useState(false);
@@ -29,6 +30,13 @@ const Game = () => {
     canPlayCard,
     setGameState 
   } = useGameState(playerName, isSinglePlayer);
+
+  const handleGameStateReceived = useCallback((receivedGameState: any) => {
+    console.log("Received game state update:", receivedGameState);
+    setGameState(receivedGameState);
+  }, [setGameState]);
+
+  const { broadcastGameState } = useWebRTC(playerName, handleGameStateReceived);
 
   if (!playerName) {
     navigate("/");
@@ -93,6 +101,11 @@ const Game = () => {
     setTimeout(() => {
       playCard(cardIndex);
       setPlayingCardIndex(null);
+      
+      // Broadcast state in multiplayer
+      if (isMultiplayer && isHost) {
+        setTimeout(() => broadcastGameState(gameState), 100);
+      }
     }, 300);
   };
 
@@ -130,13 +143,20 @@ const Game = () => {
         nextPlayerIndex = (nextPlayerIndex + prev.direction + prev.players.length) % prev.players.length;
       }
 
-      return {
+      const newState = {
         ...prev,
         players: newPlayers,
         currentCard: coloredCard,
         currentPlayerIndex: nextPlayerIndex,
         discardPile: [...prev.discardPile, coloredCard],
       };
+      
+      // Broadcast state in multiplayer
+      if (isMultiplayer && isHost) {
+        setTimeout(() => broadcastGameState(newState), 100);
+      }
+      
+      return newState;
     });
     
     setShowColorPicker(false);
