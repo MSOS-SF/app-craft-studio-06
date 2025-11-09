@@ -37,6 +37,7 @@ const Lobby = () => {
     joinRoom,
     applyAnswer,
     isConnected,
+    connectedPlayerCount,
     offerData,
     broadcastGameState
   } = useWebRTC(playerName, handleGameStateReceived);
@@ -106,10 +107,10 @@ const Lobby = () => {
   };
 
   const handleStartGame = () => {
-    if (!isConnected) {
+    if (connectedPlayerCount === 0) {
       toast({
-        title: "Not Connected",
-        description: "Wait for players to connect first",
+        title: "No Players",
+        description: "Wait for at least 1 player to connect",
         variant: "destructive",
       });
       return;
@@ -169,7 +170,7 @@ const Lobby = () => {
                 <div>
                   <Label className="text-lg font-semibold mb-2 block">Connection QR Code</Label>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Player can scan this with their camera
+                    Up to 3 players can scan this same QR code
                   </p>
                   <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
                     <div className="bg-white p-4 rounded-xl shadow-lg">
@@ -211,10 +212,10 @@ const Lobby = () => {
               )}
             </div>
             
-            {offerData && !isConnected && (
+            {offerData && connectedPlayerCount < 3 && (
               <div className="p-4 bg-muted rounded-lg space-y-3">
                 <Label className="font-semibold flex items-center justify-between">
-                  Waiting for Player...
+                  Add More Players ({connectedPlayerCount}/3)
                   <Button
                     variant="outline"
                     size="sm"
@@ -226,7 +227,7 @@ const Lobby = () => {
                   </Button>
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  When player connects, scan their QR code or paste their connection data:
+                  Scan each player's QR code or paste their connection data:
                 </p>
 
                 {showHostQRScanner && (
@@ -263,11 +264,16 @@ const Lobby = () => {
               </div>
             )}
             
-            {isConnected && (
+            {connectedPlayerCount > 0 && (
               <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
                 <p className="text-center text-green-700 font-semibold text-lg">
-                  ✓ Player Connected!
+                  ✓ {connectedPlayerCount} Player{connectedPlayerCount > 1 ? 's' : ''} Connected!
                 </p>
+                {connectedPlayerCount < 3 && (
+                  <p className="text-center text-green-600 text-sm mt-1">
+                    You can add {3 - connectedPlayerCount} more player{3 - connectedPlayerCount > 1 ? 's' : ''}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -392,7 +398,7 @@ const Lobby = () => {
           <div className="flex items-center gap-2 mb-4">
             <Users className="h-5 w-5 text-primary" />
             <h3 className="text-xl font-semibold">
-              Players ({players.length})
+              Players ({players.length}{isHost ? '/4' : ''})
             </h3>
           </div>
           
@@ -423,9 +429,9 @@ const Lobby = () => {
             onClick={handleStartGame}
             size="lg"
             className="w-full text-lg font-bold"
-            disabled={!isConnected}
+            disabled={connectedPlayerCount === 0}
           >
-            Start Game
+            Start Game ({connectedPlayerCount + 1} Player{connectedPlayerCount + 1 > 1 ? 's' : ''})
           </Button>
         )}
       </Card>
