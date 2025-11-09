@@ -24,21 +24,25 @@ const Lobby = () => {
   const [showHostQRScanner, setShowHostQRScanner] = useState(false);
   const [qrSize, setQrSize] = useState(180);
   const [joinerQrSize, setJoinerQrSize] = useState(180);
+  const [gameStarted, setGameStarted] = useState(false);
   
   const handleGameStateReceived = (message: any) => {
     console.log("Message received in lobby:", message);
     
     if (message.type === "start_game") {
-      // Navigate to game when host starts
-      navigate("/game", { 
-        state: { 
-          playerName, 
-          isHost: false, 
-          roomCode: message.roomCode,
-          isMultiplayer: true 
-        } 
-      });
+      setGameStarted(true);
     }
+  };
+
+  const handleJoinGame = () => {
+    navigate("/game", { 
+      state: { 
+        playerName, 
+        isHost: false, 
+        roomCode,
+        isMultiplayer: true 
+      } 
+    });
   };
 
   const { 
@@ -401,13 +405,31 @@ const Lobby = () => {
               </div>
             )}
 
-            {isConnected && (
+            {gameStarted ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                  <p className="text-center text-green-700 font-semibold text-lg">
+                    🎮 Game Started!
+                  </p>
+                  <p className="text-center text-green-600 text-sm mt-1">
+                    Click below to join the game
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleJoinGame}
+                  size="lg"
+                  className="w-full text-lg font-bold"
+                >
+                  Join Game
+                </Button>
+              </div>
+            ) : isConnected ? (
               <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg">
                 <p className="text-center text-green-700 font-semibold">
                   ✓ Connected! Waiting for game to start...
                 </p>
               </div>
-            )}
+            ) : null}
           </div>
         )}
 
