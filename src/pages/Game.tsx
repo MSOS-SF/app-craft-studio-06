@@ -36,7 +36,10 @@ const Game = () => {
     setGameState(receivedGameState);
   }, [setGameState]);
 
-  const { broadcastGameState } = useWebRTC(playerName, handleGameStateReceived);
+  const { broadcastGameState, isConnected, connectedPlayerCount } = useWebRTC(
+    playerName, 
+    handleGameStateReceived
+  );
 
   if (!playerName) {
     navigate("/");
@@ -87,12 +90,21 @@ const Game = () => {
   };
 
   const handleDrawCard = () => {
+    if (gameState.currentPlayerIndex !== 0) return;
+    
     setDrawingAnimation(true);
-    drawCard();
+    const newState = drawCard();
     setTimeout(() => setDrawingAnimation(false), 500);
+    
+    // Broadcast state in multiplayer
+    if (isMultiplayer && isHost && newState) {
+      setTimeout(() => broadcastGameState(newState), 100);
+    }
   };
 
   const handlePlayCard = (cardIndex: number) => {
+    if (gameState.currentPlayerIndex !== 0) return;
+    
     const card = gameState.players[0].hand[cardIndex];
     
     // If it's a wild card, show color picker
@@ -105,12 +117,12 @@ const Game = () => {
     // Play animation
     setPlayingCardIndex(cardIndex);
     setTimeout(() => {
-      playCard(cardIndex);
+      const newState = playCard(cardIndex);
       setPlayingCardIndex(null);
       
       // Broadcast state in multiplayer
-      if (isMultiplayer && isHost) {
-        setTimeout(() => broadcastGameState(gameState), 100);
+      if (isMultiplayer && isHost && newState) {
+        setTimeout(() => broadcastGameState(newState), 100);
       }
     }, 300);
   };
@@ -419,6 +431,18 @@ const Game = () => {
         <ArrowLeft className="h-4 w-4" />
         Back
       </Button>
+
+      {/* Multiplayer connection indicator */}
+      {isMultiplayer && (
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg z-10">
+          <div className="flex items-center gap-2">
+            <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+            <span className="text-sm font-medium">
+              {isConnected ? `${connectedPlayerCount + 1} Players` : 'Connecting...'}
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

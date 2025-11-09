@@ -106,9 +106,11 @@ export const useGameState = (playerName: string, isSinglePlayer: boolean = false
     );
   }, [gameState.currentCard, gameState.currentPlayerIndex]);
 
-  const playCard = useCallback((cardIndex: number) => {
-    if (gameState.currentPlayerIndex !== 0) return;
+  const playCard = useCallback((cardIndex: number): GameState | null => {
+    if (gameState.currentPlayerIndex !== 0) return null;
 
+    let newState: GameState | null = null;
+    
     setGameState(prev => {
       const card = prev.players[0].hand[cardIndex];
       if (!canPlayCard(card)) return prev;
@@ -121,11 +123,12 @@ export const useGameState = (playerName: string, isSinglePlayer: boolean = false
 
       // Check for winner
       if (newPlayers[0].hand.length === 0) {
-        return {
+        newState = {
           ...prev,
           players: newPlayers,
           winner: prev.players[0].name,
         };
+        return newState;
       }
 
       let nextPlayerIndex = (prev.currentPlayerIndex + prev.direction + prev.players.length) % prev.players.length;
@@ -154,7 +157,7 @@ export const useGameState = (playerName: string, isSinglePlayer: boolean = false
         nextPlayerIndex = (nextPlayerIndex + newDirection + prev.players.length) % prev.players.length;
       }
 
-      return {
+      newState = {
         ...prev,
         players: newPlayers,
         currentCard: card,
@@ -162,12 +165,17 @@ export const useGameState = (playerName: string, isSinglePlayer: boolean = false
         direction: newDirection,
         discardPile: [...prev.discardPile, card],
       };
+      return newState;
     });
+    
+    return newState;
   }, [gameState.currentPlayerIndex, canPlayCard]);
 
-  const drawCard = useCallback(() => {
-    if (gameState.currentPlayerIndex !== 0 || gameState.drawPile.length === 0) return;
+  const drawCard = useCallback((): GameState | null => {
+    if (gameState.currentPlayerIndex !== 0 || gameState.drawPile.length === 0) return null;
 
+    let newState: GameState | null = null;
+    
     setGameState(prev => {
       const drawnCard = prev.drawPile[0];
       const newPlayers = [...prev.players];
@@ -176,13 +184,16 @@ export const useGameState = (playerName: string, isSinglePlayer: boolean = false
         hand: [...newPlayers[0].hand, drawnCard],
       };
 
-      return {
+      newState = {
         ...prev,
         players: newPlayers,
         drawPile: prev.drawPile.slice(1),
         currentPlayerIndex: (prev.currentPlayerIndex + prev.direction + prev.players.length) % prev.players.length,
       };
+      return newState;
     });
+    
+    return newState;
   }, [gameState.currentPlayerIndex, gameState.drawPile.length]);
 
   return {
