@@ -213,17 +213,17 @@ const Lobby = () => {
         {isHost ? (
           <div className="mb-6 space-y-6">
             <div className="p-6 bg-primary/5 rounded-lg border-2 border-primary/20 space-y-4">
-              {offerData && (
+              {offerData ? (
                 <div>
                   <Label className="text-lg font-semibold mb-2 block">Connection QR Code</Label>
                   <p className="text-xs text-muted-foreground mb-2">
                     Up to 3 players can scan this same QR code
                   </p>
                   <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
-                    <div className="bg-white p-4 rounded-xl shadow-lg">
+                    <div className="bg-white p-4 rounded-xl shadow-lg touch-none">
                       <QRCodeCanvas 
                         value={offerData} 
-                        size={qrSize}
+                        size={Math.min(qrSize, window.innerWidth - 120)}
                         level="L"
                         includeMargin={true}
                       />
@@ -255,6 +255,11 @@ const Lobby = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <p className="text-sm text-muted-foreground">Generating connection code...</p>
                 </div>
               )}
             </div>
@@ -382,10 +387,10 @@ const Lobby = () => {
                   Host can scan this QR code or copy the text:
                 </p>
                 <div className="flex flex-col items-center gap-4 p-6 bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border-2 border-primary/30">
-                  <div className="bg-white p-4 rounded-xl shadow-lg">
+                  <div className="bg-white p-4 rounded-xl shadow-lg touch-none">
                     <QRCodeCanvas 
                       value={offerData} 
-                      size={joinerQrSize}
+                      size={Math.min(joinerQrSize, window.innerWidth - 120)}
                       level="L"
                       includeMargin={true}
                     />
