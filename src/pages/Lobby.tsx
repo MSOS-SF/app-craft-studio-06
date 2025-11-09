@@ -22,6 +22,8 @@ const Lobby = () => {
   const [playerData, setPlayerData] = useState("");
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [showHostQRScanner, setShowHostQRScanner] = useState(false);
+  const [qrSize, setQrSize] = useState(300);
+  const [joinerQrSize, setJoinerQrSize] = useState(220);
   
   const { 
     localId, 
@@ -167,11 +169,20 @@ const Lobby = () => {
                     <div className="bg-white p-4 rounded-xl shadow-lg">
                       <QRCodeCanvas 
                         value={offerData} 
-                        size={300}
+                        size={qrSize}
                         level="L"
                         includeMargin={true}
                       />
                     </div>
+                    <Button
+                      onClick={() => setQrSize(qrSize === 300 ? 450 : 300)}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <QrCode className="h-4 w-4" />
+                      {qrSize === 300 ? "Enlarge QR" : "Shrink QR"}
+                    </Button>
                     <div className="w-full">
                       <Label className="text-sm mb-2 block">Or copy text:</Label>
                       <div className="flex gap-2">
@@ -326,11 +337,20 @@ const Lobby = () => {
                   <div className="bg-white p-4 rounded-xl shadow-lg">
                     <QRCodeCanvas 
                       value={offerData} 
-                      size={220}
+                      size={joinerQrSize}
                       level="L"
                       includeMargin={true}
                     />
                   </div>
+                  <Button
+                    onClick={() => setJoinerQrSize(joinerQrSize === 220 ? 350 : 220)}
+                    variant="outline"
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <QrCode className="h-4 w-4" />
+                    {joinerQrSize === 220 ? "Enlarge QR" : "Shrink QR"}
+                  </Button>
                   <div className="w-full">
                     <Label className="text-sm mb-2 block">Or copy text:</Label>
                     <div className="flex gap-2">
