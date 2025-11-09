@@ -169,8 +169,6 @@ const Lobby = () => {
                         value={offerData} 
                         size={220}
                         level="M"
-                        fgColor="#8B5CF6"
-                        bgColor="#FFFFFF"
                         includeMargin={true}
                       />
                     </div>
@@ -326,8 +324,6 @@ const Lobby = () => {
                       value={offerData} 
                       size={220}
                       level="M"
-                      fgColor="#8B5CF6"
-                      bgColor="#FFFFFF"
                       includeMargin={true}
                     />
                   </div>
