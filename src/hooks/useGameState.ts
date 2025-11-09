@@ -20,6 +20,7 @@ export interface GameState {
   drawPile: Card[];
   discardPile: Card[];
   direction: 1 | -1;
+  winner: string | null;
 }
 
 const createDeck = (): Card[] => {
@@ -90,6 +91,7 @@ export const useGameState = (playerName: string, isSinglePlayer: boolean = false
       drawPile: deck,
       discardPile: [currentCard],
       direction: 1,
+      winner: null,
     };
   });
 
@@ -116,6 +118,15 @@ export const useGameState = (playerName: string, isSinglePlayer: boolean = false
         ...newPlayers[0],
         hand: newPlayers[0].hand.filter((_, i) => i !== cardIndex),
       };
+
+      // Check for winner
+      if (newPlayers[0].hand.length === 0) {
+        return {
+          ...prev,
+          players: newPlayers,
+          winner: prev.players[0].name,
+        };
+      }
 
       let nextPlayerIndex = (prev.currentPlayerIndex + prev.direction + prev.players.length) % prev.players.length;
       let newDirection = prev.direction;

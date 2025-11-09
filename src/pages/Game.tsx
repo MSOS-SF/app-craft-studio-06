@@ -3,9 +3,13 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { UnoCard } from "@/components/game/UnoCard";
 import { PlayerDisplay } from "@/components/game/PlayerDisplay";
+import { ColorPicker } from "@/components/game/ColorPicker";
+import { EmojiSelector } from "@/components/game/EmojiSelector";
+import { WinnerModal } from "@/components/game/WinnerModal";
 import { useGameState } from "@/hooks/useGameState";
 import { ArrowLeft } from "lucide-react";
 import { makeOfflineAIDecision } from "@/lib/offlineAI";
+import type { CardColor } from "@/hooks/useGameState";
 
 const Game = () => {
   const location = useLocation();
@@ -14,6 +18,11 @@ const Game = () => {
   const [showUnoButton, setShowUnoButton] = useState(false);
   const [unoAnnouncement, setUnoAnnouncement] = useState<string | null>(null);
   const [drawingAnimation, setDrawingAnimation] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [pendingWildCard, setPendingWildCard] = useState<number | null>(null);
+  const [playerEmoji, setPlayerEmoji] = useState("😀");
+  const [turnTimer, setTurnTimer] = useState(10);
+  const [playingCardIndex, setPlayingCardIndex] = useState<number | null>(null);
 
   const { 
     gameState, 
@@ -28,15 +37,36 @@ const Game = () => {
     return null;
   }
 
+  // Turn timer
+  useEffect(() => {
+    if (gameState.winner || showColorPicker) return;
+    
+    setTurnTimer(10);
+    const interval = setInterval(() => {
+      setTurnTimer((prev) => {
+        if (prev <= 1) {
+          // Time's up - auto skip turn
+          if (gameState.currentPlayerIndex === 0) {
+            handleDrawCard();
+          }
+          return 10;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [gameState.currentPlayerIndex, gameState.winner, showColorPicker]);
+
   // Check if player has 1 card - show UNO button
   useEffect(() => {
     const currentPlayer = gameState.players[0];
-    if (currentPlayer?.hand.length === 1 && gameState.currentPlayerIndex === 0) {
+    if (currentPlayer?.hand.length === 1 && gameState.currentPlayerIndex === 0 && !gameState.winner) {
       setShowUnoButton(true);
     } else {
       setShowUnoButton(false);
     }
-  }, [gameState.players, gameState.currentPlayerIndex]);
+  }, [gameState.players, gameState.currentPlayerIndex, gameState.winner]);
 
   const handleUnoClick = () => {
     setShowUnoButton(false);
@@ -50,9 +80,74 @@ const Game = () => {
     setTimeout(() => setDrawingAnimation(false), 500);
   };
 
+  const handlePlayCard = (cardIndex: number) => {
+    const card = gameState.players[0].hand[cardIndex];
+    
+    // If it's a wild card, show color picker
+    if (card.color === "wild") {
+      setPendingWildCard(cardIndex);
+      setShowColorPicker(true);
+      return;
+    }
+    
+    // Play animation
+    setPlayingCardIndex(cardIndex);
+    setTimeout(() => {
+      playCard(cardIndex);
+      setPlayingCardIndex(null);
+    }, 300);
+  };
+
+  const handleColorSelect = (color: CardColor) => {
+    if (pendingWildCard === null) return;
+    
+    const card = gameState.players[0].hand[pendingWildCard];
+    const coloredCard = { ...card, color };
+    
+    setGameState(prev => {
+      const newPlayers = [...prev.players];
+      newPlayers[0] = {
+        ...newPlayers[0],
+        hand: newPlayers[0].hand.filter((_, i) => i !== pendingWildCard),
+      };
+
+      // Check for winner
+      if (newPlayers[0].hand.length === 0) {
+        return {
+          ...prev,
+          players: newPlayers,
+          winner: prev.players[0].name,
+        };
+      }
+
+      let nextPlayerIndex = (prev.currentPlayerIndex + prev.direction + prev.players.length) % prev.players.length;
+      
+      // Handle +4
+      if (card.value === "+4") {
+        const drawnCards = prev.drawPile.slice(0, 4);
+        newPlayers[nextPlayerIndex] = {
+          ...newPlayers[nextPlayerIndex],
+          hand: [...newPlayers[nextPlayerIndex].hand, ...drawnCards],
+        };
+        nextPlayerIndex = (nextPlayerIndex + prev.direction + prev.players.length) % prev.players.length;
+      }
+
+      return {
+        ...prev,
+        players: newPlayers,
+        currentCard: coloredCard,
+        currentPlayerIndex: nextPlayerIndex,
+        discardPile: [...prev.discardPile, coloredCard],
+      };
+    });
+    
+    setShowColorPicker(false);
+    setPendingWildCard(null);
+  };
+
   // AI player logic - runs when it's AI's turn (OFFLINE)
   useEffect(() => {
-    if (!isSinglePlayer || gameState.currentPlayerIndex === 0) return;
+    if (!isSinglePlayer || gameState.currentPlayerIndex === 0 || gameState.winner) return;
 
     const makeAIMove = async () => {
       await new Promise(resolve => setTimeout(resolve, 1000)); // AI thinking time
@@ -86,6 +181,15 @@ const Game = () => {
             ...newPlayers[prev.currentPlayerIndex],
             hand: currentPlayer.hand.filter((_, i) => i !== decision.cardIndex),
           };
+
+          // Check if AI won
+          if (newPlayers[prev.currentPlayerIndex].hand.length === 0) {
+            return {
+              ...prev,
+              players: newPlayers,
+              winner: currentPlayer.name,
+            };
+          }
 
           let finalCard = card;
           if (card.color === "wild" && decision.newColor) {
@@ -131,7 +235,7 @@ const Game = () => {
     };
 
     makeAIMove();
-  }, [gameState.currentPlayerIndex, isSinglePlayer]);
+  }, [gameState.currentPlayerIndex, isSinglePlayer, gameState.winner]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end overflow-hidden relative pb-64 md:pb-0">
@@ -154,7 +258,7 @@ const Game = () => {
       <div className="absolute top-4 md:top-8 left-1/2 -translate-x-1/2">
         <PlayerDisplay
           name={gameState.players[1]?.name || "Player 2"}
-          cardCount={gameState.players[1]?.hand.length || 7}
+          cardCount={gameState.players[1]?.hand.length || 0}
           position="top"
         />
       </div>
@@ -163,7 +267,7 @@ const Game = () => {
       <div className="absolute left-4 md:left-8 top-1/4 md:top-1/2 md:-translate-y-1/2">
         <PlayerDisplay
           name={gameState.players[2]?.name || "Player 3"}
-          cardCount={gameState.players[2]?.hand.length || 7}
+          cardCount={gameState.players[2]?.hand.length || 0}
           position="left"
         />
       </div>
@@ -172,7 +276,7 @@ const Game = () => {
       <div className="absolute right-4 md:right-8 top-1/4 md:top-1/2 md:-translate-y-1/2">
         <PlayerDisplay
           name={gameState.players[3]?.name || "Player 4"}
-          cardCount={gameState.players[3]?.hand.length || 7}
+          cardCount={gameState.players[3]?.hand.length || 0}
           position="right"
         />
       </div>
@@ -212,14 +316,21 @@ const Game = () => {
 
       {/* Player's hand */}
       <div className="fixed bottom-0 left-0 right-0 bg-secondary/90 backdrop-blur-sm rounded-t-3xl p-4 md:p-6 shadow-2xl">
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="text-white font-bold text-xl flex items-center gap-2">
+            <span className="text-3xl">{playerEmoji}</span>
+            <span>{playerName}</span>
+          </div>
+          <EmojiSelector selectedEmoji={playerEmoji} onSelectEmoji={setPlayerEmoji} />
+        </div>
         <div className="flex gap-2 md:gap-3 items-end max-w-full overflow-x-auto pb-2 justify-center">
           {gameState.players[0]?.hand.map((card, index) => (
             <div
               key={`${card.color}-${card.value}-${index}`}
-              className={`transition-transform hover:-translate-y-4 cursor-pointer flex-shrink-0 ${
-                canPlayCard(card) ? "" : "opacity-50 cursor-not-allowed"
-              }`}
-              onClick={() => canPlayCard(card) && playCard(index)}
+              className={`transition-all duration-300 hover:-translate-y-6 cursor-pointer flex-shrink-0 ${
+                canPlayCard(card) && !gameState.winner ? "" : "opacity-50 cursor-not-allowed"
+              } ${playingCardIndex === index ? "scale-110 -translate-y-8 animate-pulse" : ""}`}
+              onClick={() => canPlayCard(card) && !gameState.winner && handlePlayCard(index)}
             >
               <UnoCard color={card.color} value={card.value} size="md" />
             </div>
@@ -227,18 +338,22 @@ const Game = () => {
         </div>
       </div>
 
-      {/* Current player indicator */}
-      <div className="absolute bottom-48 md:bottom-40 left-1/2 -translate-x-1/2">
-        {gameState.currentPlayerIndex === 0 ? (
-          <div className="bg-accent text-white font-bold px-6 py-2 rounded-full shadow-lg animate-pulse">
-            Your Turn
-          </div>
-        ) : (
-          <div className="bg-white/80 text-foreground font-medium px-6 py-2 rounded-full shadow-lg">
-            {gameState.players[gameState.currentPlayerIndex]?.name}'s Turn
-          </div>
-        )}
-      </div>
+      {/* Current player indicator with timer */}
+      {!gameState.winner && (
+        <div className="absolute bottom-56 md:bottom-48 left-1/2 -translate-x-1/2">
+          {gameState.currentPlayerIndex === 0 ? (
+            <div className="bg-accent text-white font-bold px-8 py-4 rounded-full shadow-lg animate-pulse text-xl flex items-center gap-3">
+              <span>Your Turn</span>
+              <span className="text-2xl">{turnTimer}s</span>
+            </div>
+          ) : (
+            <div className="bg-white/80 text-foreground font-medium px-8 py-4 rounded-full shadow-lg text-xl flex items-center gap-3">
+              <span>{gameState.players[gameState.currentPlayerIndex]?.name}'s Turn</span>
+              <span className="text-2xl text-muted-foreground">{turnTimer}s</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* UNO Button */}
       {showUnoButton && (
@@ -261,11 +376,17 @@ const Game = () => {
       {/* UNO Announcement */}
       {unoAnnouncement && (
         <div className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 animate-scale-in">
-          <div className="bg-accent text-white font-bold text-5xl px-12 py-6 rounded-3xl shadow-2xl border-4 border-white">
+          <div className="bg-accent text-white font-bold text-5xl px-12 py-6 rounded-3xl shadow-2xl border-4 border-white animate-pulse">
             {unoAnnouncement}
           </div>
         </div>
       )}
+
+      {/* Color Picker */}
+      {showColorPicker && <ColorPicker onSelectColor={handleColorSelect} />}
+
+      {/* Winner Modal */}
+      {gameState.winner && <WinnerModal winnerName={gameState.winner} />}
 
       {/* Back button */}
       <Button

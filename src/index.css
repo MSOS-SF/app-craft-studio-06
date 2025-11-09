@@ -30,8 +30,8 @@ All colors MUST be HSL.
     
     /* UNO Card Colors */
     --uno-red: 0 90% 50%;
-    --uno-yellow: 45 93% 47%;
-    --uno-green: 142 76% 36%;
+    --uno-yellow: 48 100% 50%;
+    --uno-green: 142 76% 28%;
     --uno-blue: 199 89% 48%;
     --uno-wild: 0 0% 10%;
     
@@ -74,8 +74,8 @@ All colors MUST be HSL.
     
     /* UNO Card Colors */
     --uno-red: 0 90% 50%;
-    --uno-yellow: 45 93% 47%;
-    --uno-green: 142 76% 36%;
+    --uno-yellow: 48 100% 50%;
+    --uno-green: 142 76% 28%;
     --uno-blue: 199 89% 48%;
     --uno-wild: 0 0% 10%;
     
