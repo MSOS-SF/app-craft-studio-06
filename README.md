@@ -4,6 +4,10 @@
 
 **URL**: https://lovable.dev/projects/766a4230-9c8b-4c4d-a0bd-3a1a1fe67567
 
+## Documentation
+
+- [GreenQuest Developer Guide](docs/GreenQuest-Developer-Guide.md) – end-to-end reference for the Android AR environmental mission app, including architecture, features, data schema, and setup details.
+
 ## How can I edit this code?
 
 There are several ways of editing your application.
