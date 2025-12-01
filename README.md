@@ -1,73 +1,33 @@
-# Welcome to your Lovable project
+# GreenQuest
 
-## Project info
+GreenQuest is an Android-first AR mission app that blends environmental tasks with telecom-aware gameplay. The Kotlin scaffolding in this repo follows MVVM with Clean Architecture and includes in-memory repositories so you can exercise the mission engine, telecom signal logic, and reward flows without wiring a backend yet.
 
-**URL**: https://lovable.dev/projects/766a4230-9c8b-4c4d-a0bd-3a1a1fe67567
+## Documentation
 
-## How can I edit this code?
+- [GreenQuest Developer Guide](docs/GreenQuest-Developer-Guide.md) – full architecture, feature breakdowns, schema, testing, and setup notes.
+- Kotlin MVVM scaffolding lives under [`android/greenquest/src/main/kotlin/com/greenquest/app`](android/greenquest/src/main/kotlin/com/greenquest/app).
 
-There are several ways of editing your application.
+## Repository layout
 
-**Use Lovable**
+- `android/greenquest/` – Kotlin domain, data, and device-layer scaffolding for GreenQuest (mission engine, generators, telecom analyzers, in-memory repositories, and ViewModels).
+- `docs/` – developer documentation, including the GreenQuest guide.
+- `src/`, `public/`, `index.html` – Vite/React front-end resources you can adapt for companion tooling or prototypes.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/766a4230-9c8b-4c4d-a0bd-3a1a1fe67567) and start prompting.
+## Getting started (Android Kotlin scaffold)
 
-Changes made via Lovable will be committed automatically to this repo.
+1. Open `android/greenquest` in Android Studio (Flamingo or newer).
+2. Sync Gradle and ensure camera, location, and phone/network state permissions are enabled on your device/emulator.
+3. Run or debug domain flows using the in-memory repositories; extend with Room/remote data when ready.
 
-**Use your preferred IDE**
+## Getting started (web tools)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+If you want to work on the Vite/React assets (for dashboards or ops tooling):
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Deployment
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/766a4230-9c8b-4c4d-a0bd-3a1a1fe67567) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+For Android, create signed `release` builds when integrating with telecom partner APIs. For any web companions, build with `npm run build` and host the `dist/` output on your preferred platform.
