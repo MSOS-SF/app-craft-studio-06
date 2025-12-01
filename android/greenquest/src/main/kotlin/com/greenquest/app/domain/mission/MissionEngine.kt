@@ -1,9 +1,11 @@
 package com.greenquest.app.domain.mission
 
 import com.greenquest.app.data.repository.MissionRepository
-import com.greenquest.app.domain.model.Mission
+import com.greenquest.app.data.repository.RewardRepository
+import com.greenquest.app.data.repository.TelemetryRepository
 import com.greenquest.app.domain.model.MissionEvent
 import com.greenquest.app.domain.model.NetworkType
+import com.greenquest.app.domain.model.Telemetry
 import com.greenquest.app.domain.telecom.SignalAnalyzer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +16,8 @@ import kotlinx.coroutines.launch
 
 class MissionEngine(
     private val missionRepository: MissionRepository,
+    private val rewardRepository: RewardRepository,
+    private val telemetryRepository: TelemetryRepository,
     private val missionGenerator: MissionGenerator,
     private val externalScope: CoroutineScope = CoroutineScope(Dispatchers.Default)
 ) {
@@ -28,6 +32,17 @@ class MissionEngine(
         towerId: String?
     ) {
         externalScope.launch {
+            telemetryRepository.recordTelemetry(
+                Telemetry(
+                    telemetryId = "telemetry-${System.currentTimeMillis()}",
+                    signalDbm = signalDbm,
+                    networkType = networkType,
+                    cellTowerId = towerId,
+                    latitude = latitude,
+                    longitude = longitude,
+                    timestampMillis = System.currentTimeMillis()
+                )
+            )
             val missions = missionGenerator.generateForLocation(latitude, longitude, signalDbm, networkType, towerId)
             val eligible = missions.filter { mission ->
                 SignalAnalyzer.matchesCondition(signalDbm, networkType, mission.networkCondition)
@@ -41,6 +56,7 @@ class MissionEngine(
         externalScope.launch {
             val current = missionRepository.observeActiveMissions().first().find { it.id == missionId } ?: return@launch
             missionRepository.markCompleted(missionId)
+            rewardRepository.addReward(current.reward)
             _events.emit(MissionEvent.Completed(current, current.reward))
         }
     }

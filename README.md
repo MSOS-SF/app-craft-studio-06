@@ -7,7 +7,7 @@
 ## Documentation
 
 - [GreenQuest Developer Guide](docs/GreenQuest-Developer-Guide.md) – end-to-end reference for the Android AR environmental mission app, including architecture, features, data schema, and setup details.
-- Kotlin MVVM scaffolding for the GreenQuest Android app lives under [`android/greenquest/src/main/kotlin/com/greenquest/app`](android/greenquest/src/main/kotlin/com/greenquest/app).
+- Kotlin MVVM scaffolding for the GreenQuest Android app lives under [`android/greenquest/src/main/kotlin/com/greenquest/app`](android/greenquest/src/main/kotlin/com/greenquest/app), including in-memory repositories you can use to run the domain layer without a backend.
 
 ## How can I edit this code?
 

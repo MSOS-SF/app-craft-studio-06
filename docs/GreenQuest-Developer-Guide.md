@@ -19,6 +19,8 @@ The app follows MVVM with clean architecture boundaries across presentation, dom
 - `device/` location, camera, telecom, connectivity
 - `util/`
 
+> Kotlin scaffolding in `android/greenquest/src/main/kotlin/com/greenquest/app` includes in-memory repositories for missions, rewards, and telemetry so you can exercise the domain layer (mission engine, generators, signal analyzer, ViewModels) without wiring a backend or Room yet.
+
 ## Feature Breakdown
 
 ### AR Camera Layer

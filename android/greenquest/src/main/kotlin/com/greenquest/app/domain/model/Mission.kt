@@ -11,6 +11,8 @@ data class Mission(
     val reward: Reward,
     val networkCondition: NetworkCondition? = null,
     val timeLimitSeconds: Long? = null,
+    val timestampCreated: Long = System.currentTimeMillis(),
+    val timestampExpires: Long? = timeLimitSeconds?.let { timestampCreated + it * 1000 },
     val isCompleted: Boolean = false
 )
 
